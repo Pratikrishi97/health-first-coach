@@ -8,15 +8,19 @@ import {
   BookOpen,
   User,
   Sparkles,
+  Calendar,
+  type LucideIcon,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 import type { AppView } from "@/lib/types";
+import { MOTION } from "@/lib/motion";
 
 interface NavItem {
   view: AppView;
   label: string;
-  icon: typeof Home;
+  icon: LucideIcon;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -35,7 +39,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 glass border-t border-border"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 glass border-t border-border/60"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="flex items-stretch justify-around px-1">
@@ -52,12 +56,10 @@ export function BottomNav() {
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <span
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full transition-all",
-                    active && "bg-primary/10"
-                  )}
-                >
+                <span className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-full transition-all",
+                  active && "bg-primary/10"
+                )}>
                   <Icon className="h-[18px] w-[18px]" />
                 </span>
                 <span>{item.label}</span>
@@ -74,14 +76,20 @@ export function SidebarNav() {
   const view = useAppStore((s) => s.view);
   const setView = useAppStore((s) => s.setView);
   const profile = useAppStore((s) => s.profile);
+  const weeklyReview = useAppStore((s) => s.weeklyReview);
 
   return (
     <aside className="hidden md:flex flex-col w-60 shrink-0 border-r border-border bg-sidebar h-screen sticky top-0">
       <div className="p-6 pb-4">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: MOTION.duration.standard, ease: MOTION.easing.spring }}
+            className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-premium-sm"
+          >
             <Sparkles className="h-4 w-4" />
-          </div>
+          </motion.div>
           <div className="leading-tight">
             <div className="font-semibold tracking-tight">Health-First</div>
             <div className="text-[11px] text-muted-foreground">Coach</div>
@@ -89,7 +97,7 @@ export function SidebarNav() {
         </div>
       </div>
 
-      <nav aria-label="Primary" className="px-3 flex-1">
+      <nav aria-label="Primary" className="px-3 flex-1 overflow-y-auto slim-scroll">
         <ul className="space-y-1">
           {NAV_ITEMS.map((item) => {
             const active = view === item.view;
@@ -102,7 +110,7 @@ export function SidebarNav() {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     active
-                      ? "bg-primary text-primary-foreground shadow-sm"
+                      ? "bg-primary text-primary-foreground shadow-premium-sm"
                       : "text-sidebar-foreground hover:bg-sidebar-accent"
                   )}
                 >
@@ -113,6 +121,60 @@ export function SidebarNav() {
             );
           })}
         </ul>
+
+        {/* Secondary nav: Timeline + Weekly Review */}
+        <div className="mt-6 pt-4 border-t border-sidebar-border">
+          <div className="px-3 mb-2 text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
+            Your journey
+          </div>
+          <ul className="space-y-1">
+            <li>
+              <button
+                onClick={() => setView("timeline")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  view === "timeline"
+                    ? "bg-primary/10 text-primary"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent"
+                )}
+              >
+                <Calendar className="h-[18px] w-[18px]" />
+                Timeline
+              </button>
+            </li>
+            {weeklyReview && (
+              <li>
+                <button
+                  onClick={() => setView("weekly_review")}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    view === "weekly_review"
+                      ? "bg-primary/10 text-primary"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent"
+                  )}
+                >
+                  <LineChart className="h-[18px] w-[18px]" />
+                  Week in review
+                  <span className="ml-auto h-2 w-2 rounded-full bg-primary pulse-dot" />
+                </button>
+              </li>
+            )}
+            <li>
+              <button
+                onClick={() => setView("plan_lab")}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  view === "plan_lab"
+                    ? "bg-primary/10 text-primary"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent"
+                )}
+              >
+                <Sparkles className="h-[18px] w-[18px]" />
+                Plan Lab
+              </button>
+            </li>
+          </ul>
+        </div>
       </nav>
 
       {profile && (

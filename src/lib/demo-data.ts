@@ -5,7 +5,9 @@ import type {
   Habit,
   InsightCard,
   NudgeItem,
+  TimelineEvent,
   UserProfile,
+  WeeklyReview,
   DemoScenario,
 } from "./types";
 
@@ -405,6 +407,136 @@ export function buildDemoContent(): ContentItem[] {
   ];
 }
 
+export function buildDemoTimeline(scenario: DemoScenario): TimelineEvent[] {
+  const events: TimelineEvent[] = [
+    {
+      id: "t1",
+      date: daysAgoISO(21),
+      type: "habit_started",
+      title: "Started walking habit",
+      description: "Set a 20-minute walk goal, 5 days/week.",
+      icon: "walk",
+    },
+    {
+      id: "t2",
+      date: daysAgoISO(19),
+      type: "streak",
+      title: "3-day streak",
+      description: "Your first consistent stretch with the evening walk.",
+      icon: "walk",
+    },
+    {
+      id: "t3",
+      date: daysAgoISO(16),
+      type: "device_connected",
+      title: "Connected Apple Health",
+      description: "Steps and sleep now sync automatically.",
+      icon: "device",
+    },
+    {
+      id: "t4",
+      date: daysAgoISO(14),
+      type: "improvement",
+      title: "Sleep routine improved",
+      description: "Sleep averaged 7.2h, up from 6.4h the prior week.",
+      icon: "sleep",
+    },
+    {
+      id: "t5",
+      date: daysAgoISO(10),
+      type: "milestone",
+      title: "Reached 70% habit consistency",
+      description: "Crossed the threshold where habits start to feel automatic.",
+      icon: "trophy",
+    },
+    {
+      id: "t6",
+      date: daysAgoISO(7),
+      type: "plan_adapted",
+      title: "Coach moved morning workout to 6:30 PM",
+      description: "After 3 missed mornings, the coach suggested evenings when your schedule is more predictable.",
+      icon: "plan",
+    },
+    {
+      id: "t7",
+      date: daysAgoISO(4),
+      type: "streak",
+      title: "7-day stress reset streak",
+      description: "Completed the 5-minute reset every day for a week.",
+      icon: "stress",
+    },
+    {
+      id: "t8",
+      date: daysAgoISO(1),
+      type: "goal_completed",
+      title: "Hit 8,000 steps for the first time",
+      description: "Reached your movement goal 5/7 days this week.",
+      icon: "walk",
+    },
+  ];
+
+  if (scenario === "struggling") {
+    events.push({
+      id: "t9-struggle",
+      date: daysAgoISO(2),
+      type: "plan_adapted",
+      title: "Coach reduced weekly target",
+      description: "Lowered your habit target from 5 to 3 days/week to rebuild momentum.",
+      icon: "plan",
+    });
+  }
+
+  if (scenario === "successful") {
+    events.push({
+      id: "t9-success",
+      date: daysAgoISO(2),
+      type: "milestone",
+      title: "9-day streak — your longest yet",
+      description: "Coach suggested adding a morning movement session next week.",
+      icon: "trophy",
+    });
+  }
+
+  return events;
+}
+
+export function buildDemoWeeklyReview(scenario: DemoScenario): WeeklyReview {
+  if (scenario === "struggling") {
+    return {
+      weekStartDate: daysAgoISO(7),
+      daysShownUp: 3,
+      strongestHabitId: "stress-reset",
+      biggestImprovement: "stress",
+      coachNote: "Shorter workouts are leading to better consistency. Let's keep your goal at 15 minutes and increase frequency slightly.",
+      nextWeekPlan: "4 × 15-minute sessions, down from 5 × 30-minute.",
+      currentGoal: "5 workouts",
+      actualCompletion: 0.6,
+    };
+  }
+  if (scenario === "successful") {
+    return {
+      weekStartDate: daysAgoISO(7),
+      daysShownUp: 6,
+      strongestHabitId: "walk-20",
+      biggestImprovement: "movement",
+      coachNote: "Your evening walks have become automatic. Let's add one short morning movement session next week.",
+      nextWeekPlan: "Add a 10-minute morning stretch, 3 days/week.",
+      currentGoal: "5 workouts",
+      actualCompletion: 0.85,
+    };
+  }
+  return {
+    weekStartDate: daysAgoISO(7),
+    daysShownUp: 5,
+    strongestHabitId: "walk-20",
+    biggestImprovement: "sleep",
+    coachNote: "You're most consistent on days when you plan your workout before lunch. Let's anchor that pattern next week.",
+    nextWeekPlan: "Schedule movement before lunch, 4 days/week.",
+    currentGoal: "5 workouts",
+    actualCompletion: 0.7,
+  };
+}
+
 export function buildDemoState(scenario: DemoScenario): AppState {
   return {
     view: "home",
@@ -416,11 +548,14 @@ export function buildDemoState(scenario: DemoScenario): AppState {
     insights: buildDemoInsights(scenario),
     nudges: buildDemoNudges(scenario),
     content: buildDemoContent(),
+    timeline: buildDemoTimeline(scenario),
+    weeklyReview: buildDemoWeeklyReview(scenario),
     nudgeFrequency: "balanced",
     preferredCoachingTime: "morning",
     weeklySummaryEnabled: true,
     progressUpdatesEnabled: true,
     largeTextMode: false,
+    activeActivity: null,
     analyticsEvents: [
       { type: "demo_loaded", timestamp: new Date().toISOString(), properties: { scenario } },
     ],

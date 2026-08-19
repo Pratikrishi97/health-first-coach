@@ -9,6 +9,7 @@ import type {
   CoachMessage,
   DemoScenario,
   Habit,
+  TimelineEvent,
   UserProfile,
 } from "./types";
 import { buildDemoState } from "./demo-data";
@@ -43,6 +44,12 @@ interface StoreActions {
   loadDemo: (scenario: DemoScenario) => void;
   resetAll: () => void;
   clearData: () => void;
+  // new
+  startActivity: (habitId: string, title: string, durationMinutes: number) => void;
+  tickActivity: () => void;
+  completeActivity: () => void;
+  cancelActivity: () => void;
+  addTimelineEvent: (event: TimelineEvent) => void;
 }
 
 type Store = AppState & StoreActions;
@@ -57,11 +64,14 @@ const initialState: AppState = {
   insights: [],
   nudges: [],
   content: [],
+  timeline: [],
+  weeklyReview: null,
   nudgeFrequency: "balanced",
   preferredCoachingTime: "morning",
   weeklySummaryEnabled: true,
   progressUpdatesEnabled: true,
   largeTextMode: false,
+  activeActivity: null,
   analyticsEvents: [],
   demoScenario: "new",
 };
@@ -223,11 +233,70 @@ export const useAppStore = create<Store>()(
           habits: [],
           metrics: [],
           coachConversation: [],
+          timeline: [],
+          weeklyReview: null,
+          activeActivity: null,
           view: "landing",
           onboardingStep: 0,
         });
         get().track("data_deleted", {});
       },
+
+      startActivity: (habitId, title, durationMinutes) => {
+        const active: AppState["activeActivity"] = {
+          habitId,
+          title,
+          durationMinutes,
+          startedAt: new Date().toISOString(),
+          progressMinutes: 0,
+          completed: false,
+        };
+        set({ activeActivity: active });
+        get().track("next_best_action_clicked", { habitId, title });
+      },
+
+      tickActivity: () => {
+        set((s) => {
+          if (!s.activeActivity || s.activeActivity.completed) return {};
+          const newProgress = s.activeActivity.progressMinutes + 1;
+          if (newProgress >= s.activeActivity.durationMinutes) {
+            return {
+              activeActivity: {
+                ...s.activeActivity,
+                progressMinutes: s.activeActivity.durationMinutes,
+                completed: true,
+              },
+            };
+          }
+          return {
+            activeActivity: { ...s.activeActivity, progressMinutes: newProgress },
+          };
+        });
+      },
+
+      completeActivity: () => {
+        const active = get().activeActivity;
+        if (active) {
+          // Mark the habit complete
+          get().toggleHabitToday(active.habitId);
+          // Add a timeline event
+          get().addTimelineEvent({
+            id: `t-${Date.now()}`,
+            date: new Date().toISOString().slice(0, 10),
+            type: "goal_completed",
+            title: `Completed ${active.title}`,
+            description: `Finished your ${active.durationMinutes}-minute session.`,
+            icon: "check",
+          });
+          get().track("habit_completed", { habitId: active.habitId, source: "next_best_action" });
+        }
+        set({ activeActivity: null });
+      },
+
+      cancelActivity: () => set({ activeActivity: null }),
+
+      addTimelineEvent: (event) =>
+        set((s) => ({ timeline: [event, ...s.timeline] })),
     }),
     {
       name: "health-first-coach",
@@ -242,13 +311,16 @@ export const useAppStore = create<Store>()(
         insights: s.insights,
         nudges: s.nudges,
         content: s.content,
+        timeline: s.timeline,
+        weeklyReview: s.weeklyReview,
         nudgeFrequency: s.nudgeFrequency,
         preferredCoachingTime: s.preferredCoachingTime,
         weeklySummaryEnabled: s.weeklySummaryEnabled,
         progressUpdatesEnabled: s.progressUpdatesEnabled,
         largeTextMode: s.largeTextMode,
-        demoScenario: s.demoScenario,
+        activeActivity: s.activeActivity,
         analyticsEvents: s.analyticsEvents.slice(-50),
+        demoScenario: s.demoScenario,
       }),
     }
   )

@@ -157,16 +157,49 @@ export interface AppState {
   insights: InsightCard[];
   nudges: NudgeItem[];
   content: ContentItem[];
+  timeline: TimelineEvent[];
+  weeklyReview: WeeklyReview | null;
   // prefs
   nudgeFrequency: "minimal" | "balanced" | "frequent";
   preferredCoachingTime: "morning" | "midday" | "evening";
   weeklySummaryEnabled: boolean;
   progressUpdatesEnabled: boolean;
   largeTextMode: boolean;
+  // activity (Next Best Action in-progress state)
+  activeActivity: ActiveActivity | null;
   // analytics
   analyticsEvents: AnalyticsEvent[];
   // demo
   demoScenario: DemoScenario;
+}
+
+export interface TimelineEvent {
+  id: string;
+  date: string;                // ISO date
+  type: "habit_started" | "streak" | "milestone" | "improvement" | "device_connected" | "plan_adapted" | "goal_completed";
+  title: string;
+  description?: string;
+  icon?: "walk" | "sleep" | "stress" | "eat" | "trophy" | "device" | "plan" | "check";
+}
+
+export interface WeeklyReview {
+  weekStartDate: string;
+  daysShownUp: number;            // 0-7
+  strongestHabitId: string;
+  biggestImprovement: "sleep" | "movement" | "nutrition" | "stress";
+  coachNote: string;
+  nextWeekPlan: string;
+  currentGoal: string;
+  actualCompletion: number;       // 0-1
+}
+
+export interface ActiveActivity {
+  habitId: string;
+  title: string;
+  durationMinutes: number;
+  startedAt: string;
+  progressMinutes: number;
+  completed: boolean;
 }
 
 export type AppView =
@@ -182,7 +215,10 @@ export type AppView =
   | "privacy"
   | "devices"
   | "safety"
-  | "nudges";
+  | "nudges"
+  | "timeline"
+  | "weekly_review"
+  | "plan_lab";
 
 export interface AnalyticsEvent {
   type: string;

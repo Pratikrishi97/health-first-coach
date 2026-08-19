@@ -16,6 +16,9 @@ import { PrivacyView } from "@/components/views/privacy-view";
 import { DevicesView } from "@/components/views/devices-view";
 import { SafetyView } from "@/components/views/safety-view";
 import { NudgesView } from "@/components/views/nudges-view";
+import { TimelineView } from "@/components/views/timeline-view";
+import { WeeklyReviewView } from "@/components/views/weekly-review-view";
+import { PlanLabView } from "@/components/views/plan-lab-view";
 import { cn } from "@/lib/utils";
 
 // ============================================================
@@ -26,14 +29,12 @@ import { cn } from "@/lib/utils";
 // state decides which top-level screen to render.
 // ============================================================
 
-// Use useSyncExternalStore to safely detect client-side mount without
-// triggering the setState-in-effect anti-pattern.
 const emptySubscribe = () => () => {};
 function useIsClient() {
   return useSyncExternalStore(
     emptySubscribe,
-    () => true,   // client snapshot
-    () => false   // server snapshot
+    () => true,
+    () => false
   );
 }
 
@@ -43,7 +44,6 @@ export default function Home() {
   const largeTextMode = useAppStore((s) => s.largeTextMode);
   const isClient = useIsClient();
 
-  // Avoid hydration mismatch — render nothing until store rehydrates
   if (!isClient) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -81,7 +81,7 @@ export default function Home() {
     return (
       <div className="md:flex min-h-screen">
         <SidebarNav />
-        <main className={cn("flex-1 min-w-0", largeTextMode && "text-lg")}>
+        <main className={cn("flex-1 min-w-0", largeTextMode && "text-large-mode")}>
           <CoachView />
         </main>
         <BottomNav />
@@ -94,7 +94,7 @@ export default function Home() {
   return (
     <div className="md:flex min-h-screen">
       <SidebarNav />
-      <main className={cn("flex-1 min-w-0", largeTextMode && "text-lg")}>
+      <main className={cn("flex-1 min-w-0", largeTextMode && "text-large-mode")}>
         {view === "home" && <HomeView />}
         {view === "habits" && <HabitsView />}
         {view === "progress" && <ProgressView />}
@@ -104,6 +104,9 @@ export default function Home() {
         {view === "devices" && <DevicesView />}
         {view === "safety" && <SafetyView />}
         {view === "nudges" && <NudgesView />}
+        {view === "timeline" && <TimelineView />}
+        {view === "weekly_review" && <WeeklyReviewView />}
+        {view === "plan_lab" && <PlanLabView />}
       </main>
       <BottomNav />
       <DemoSwitcher />

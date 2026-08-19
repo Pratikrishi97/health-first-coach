@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Sparkles,
   Footprints,
@@ -8,27 +9,52 @@ import {
   Brain,
   ArrowRight,
   TrendingUp,
-  TrendingDown,
-  Minus,
   ChevronRight,
+  Play,
+  Pause,
+  CheckCircle2,
+  X,
+  Info,
   type LucideIcon,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { getNextBestAction } from "@/lib/coach-engine";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import type { Habit } from "@/lib/types";
+import {
+  StaggerGroup,
+  StaggerItem,
+  FadeIn,
+  ProgressRing,
+  AnimatedNumber,
+  ConfettiBurst,
+  Tactile,
+  MOTION,
+} from "@/lib/motion";
 
 export function HomeView() {
   const profile = useAppStore((s) => s.profile);
   const metrics = useAppStore((s) => s.metrics);
   const habits = useAppStore((s) => s.habits);
+  const timeline = useAppStore((s) => s.timeline);
+  const weeklyReview = useAppStore((s) => s.weeklyReview);
   const toggleHabitToday = useAppStore((s) => s.toggleHabitToday);
   const setView = useAppStore((s) => s.setView);
+
+  const [balanceOpen, setBalanceOpen] = useState(false);
+  const [celebrateHabit, setCelebrateHabit] = useState<string | null>(null);
 
   if (!profile) return null;
 
@@ -39,53 +65,59 @@ export function HomeView() {
   const nextAction = getNextBestAction(useAppStore.getState());
 
   const dailyBalance = computeDailyBalance(today, habits);
+  const balanceBreakdown = computeBalanceBreakdown(today, habits);
   const momentum = computeWeeklyMomentum(habits);
   const streak = Math.max(0, ...habits.map((h) => h.currentStreak));
+
+  const handleToggleHabit = (habitId: string) => {
+    const habit = habits.find((h) => h.id === habitId);
+    const wasCompleted = habit?.history[habit.history.length - 1];
+    toggleHabitToday(habitId);
+    if (!wasCompleted) {
+      setCelebrateHabit(habitId);
+      setTimeout(() => setCelebrateHabit(null), 1200);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8">
       {/* Greeting */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mb-6"
-      >
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-          <span>{greeting}</span>
-          <span>·</span>
-          <span>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</span>
+      <FadeIn>
+        <div className="mb-6">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+            <span>{greeting}</span>
+            <span>·</span>
+            <span>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
+            {greeting}, {firstName}.
+          </h1>
+          <p className="mt-1 text-muted-foreground text-pretty">
+            {today && today.sleepHours < 6
+              ? "Your sleep was shorter than usual. Today's plan is gentler — small actions still count."
+              : today && today.stressLevel >= 65
+              ? "Your stress looks elevated. A 5-minute reset can shift the rest of your day."
+              : momentum >= 0.7
+              ? "You're on a strong streak. Let's keep it going with one focused action."
+              : "You've got a busy day ahead. Let's keep today's plan simple."}
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-          {greeting}, {firstName}.
-        </h1>
-        <p className="mt-1 text-muted-foreground text-pretty">
-          {today && today.sleepHours < 6
-            ? "Your sleep was shorter than usual. Today's plan is gentler — small actions still count."
-            : today && today.stressLevel >= 65
-            ? "Your stress looks elevated. A 5-minute reset can shift the rest of your day."
-            : momentum >= 0.7
-            ? "You're on a strong streak. Let's keep it going with one focused action."
-            : "You've got a busy day ahead. Let's keep today's plan simple."}
-        </p>
-      </motion.div>
+      </FadeIn>
 
       {/* Daily Balance + Next best action */}
-      <div className="grid sm:grid-cols-5 gap-4 mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.05 }}
-          className="sm:col-span-2"
-        >
-          <Card className="p-5 h-full card-soft flex flex-col justify-between">
-            <div>
-              <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wide font-medium">
-                Daily Balance
+      <StaggerGroup className="grid sm:grid-cols-5 gap-4 mb-6" stagger={MOTION.stagger.standard}>
+        <StaggerItem className="sm:col-span-2">
+          <Card className="p-5 h-full card-premium flex flex-col justify-between cursor-pointer" >
+            <button onClick={() => setBalanceOpen(true)} className="text-left">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                  Daily Balance
+                </div>
+                <Info className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
               <div className="flex items-end gap-2">
                 <div className="text-5xl font-semibold tracking-tight tabular-nums">
-                  {dailyBalance}
+                  <AnimatedNumber value={dailyBalance} duration={1.2} />
                 </div>
                 <div className="text-sm text-muted-foreground pb-2">
                   {dailyBalance >= 80 ? "On track" : dailyBalance >= 60 ? "Steady" : "Needs attention"}
@@ -95,51 +127,21 @@ export function HomeView() {
                 A holistic indicator across movement, sleep, nutrition, and stress.
                 <span className="text-muted-foreground/70"> Not a medical score.</span>
               </p>
-            </div>
+            </button>
             <button
-              onClick={() => setView("progress")}
+              onClick={() => setBalanceOpen(true)}
               className="text-xs text-primary font-medium mt-4 flex items-center gap-1 hover:underline"
             >
-              See breakdown
+              Why this score?
               <ChevronRight className="h-3 w-3" />
             </button>
           </Card>
-        </motion.div>
+        </StaggerItem>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="sm:col-span-3"
-        >
-          <Card className="p-5 h-full card-soft bg-gradient-to-br from-primary/5 to-background">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-xs uppercase tracking-wide font-medium text-muted-foreground">
-                {nextAction.title}
-              </span>
-            </div>
-            <p className="text-base font-medium leading-snug text-pretty">
-              {nextAction.body}
-            </p>
-            <div className="mt-4 flex items-center gap-2">
-              <Button size="sm" onClick={() => setView(nextAction.action === "start_walk" ? "habits" : "coach")}>
-                {nextAction.action === "start_walk" ? "Start walk" : nextAction.action === "adjust_plan" ? "Adjust plan" : nextAction.action === "schedule_habit" ? "Reschedule" : "Ask coach"}
-                <ArrowRight className="h-3 w-3 ml-1" />
-              </Button>
-              <button
-                onClick={() => setView("coach")}
-                className="text-xs text-muted-foreground hover:text-foreground px-2"
-              >
-                Why this?
-              </button>
-            </div>
-            <div className="mt-3 text-[11px] text-muted-foreground/80 leading-snug border-l-2 border-primary/30 pl-2">
-              {nextAction.reason}
-            </div>
-          </Card>
-        </motion.div>
-      </div>
+        <StaggerItem className="sm:col-span-3">
+          <NextBestActionCard nextAction={nextAction} />
+        </StaggerItem>
+      </StaggerGroup>
 
       {/* Habit cards */}
       <section className="mb-6">
@@ -147,42 +149,15 @@ export function HomeView() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Today&apos;s habits
           </h2>
-          <button
-            onClick={() => setView("habits")}
-            className="text-xs text-primary font-medium hover:underline"
-          >
+          <button onClick={() => setView("habits")} className="text-xs text-primary font-medium hover:underline">
             View all
           </button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <HabitMiniCard
-            icon={Footprints}
-            label="Movement"
-            value={today ? `${formatSteps(today.steps)}` : "—"}
-            sub={today ? `of ${formatSteps(today.stepsGoal)}` : ""}
-            progress={today ? (today.steps / today.stepsGoal) * 100 : 0}
-          />
-          <HabitMiniCard
-            icon={Moon}
-            label="Sleep"
-            value={today ? `${Math.floor(today.sleepHours)}h ${Math.round((today.sleepHours % 1) * 60)}m` : "—"}
-            sub={today ? `goal ${today.sleepGoalHours}h` : ""}
-            progress={today ? (today.sleepHours / today.sleepGoalHours) * 100 : 0}
-          />
-          <HabitMiniCard
-            icon={Droplets}
-            label="Hydration"
-            value={today ? `${today.hydrationGlasses}/${today.hydrationGoal}` : "—"}
-            sub="glasses"
-            progress={today ? (today.hydrationGlasses / today.hydrationGoal) * 100 : 0}
-          />
-          <HabitMiniCard
-            icon={Brain}
-            label="Stress reset"
-            value={today ? `${today.stressResetsCompleted}/1` : "—"}
-            sub="completed"
-            progress={today ? today.stressResetsCompleted * 100 : 0}
-          />
+          <HabitMiniCard icon={Footprints} label="Movement" value={today ? `${formatSteps(today.steps)}` : "—"} sub={today ? `of ${formatSteps(today.stepsGoal)}` : ""} progress={today ? (today.steps / today.stepsGoal) * 100 : 0} />
+          <HabitMiniCard icon={Moon} label="Sleep" value={today ? `${Math.floor(today.sleepHours)}h ${Math.round((today.sleepHours % 1) * 60)}m` : "—"} sub={today ? `goal ${today.sleepGoalHours}h` : ""} progress={today ? (today.sleepHours / today.sleepGoalHours) * 100 : 0} />
+          <HabitMiniCard icon={Droplets} label="Hydration" value={today ? `${today.hydrationGlasses}/${today.hydrationGoal}` : "—"} sub="glasses" progress={today ? (today.hydrationGlasses / today.hydrationGoal) * 100 : 0} />
+          <HabitMiniCard icon={Brain} label="Stress reset" value={today ? `${today.stressResetsCompleted}/1` : "—"} sub="completed" progress={today ? today.stressResetsCompleted * 100 : 0} />
         </div>
       </section>
 
@@ -191,59 +166,89 @@ export function HomeView() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
           Today&apos;s checklist
         </h2>
-        <Card className="card-soft divide-y divide-border">
+        <Card className="card-premium divide-y divide-border overflow-hidden">
           {habits.filter((h) => !h.paused).map((h) => (
-            <HabitRow key={h.id} habit={h} onToggle={() => toggleHabitToday(h.id)} />
+            <HabitRow
+              key={h.id}
+              habit={h}
+              celebrate={celebrateHabit === h.id}
+              onToggle={() => handleToggleHabit(h.id)}
+            />
           ))}
         </Card>
       </section>
 
       {/* Coach insight */}
-      <motion.section
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-        className="mb-6"
-      >
-        <Card className="p-5 card-soft bg-gradient-to-br from-primary/10 to-background">
-          <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shrink-0">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs uppercase tracking-wide font-semibold text-primary mb-1">
-                Coach insight
+      <FadeIn delay={0.1}>
+        <section className="mb-6">
+          <Card className="p-5 card-premium bg-gradient-to-br from-primary/10 to-background border-beam">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shrink-0 shadow-premium-sm">
+                <Sparkles className="h-5 w-5" />
               </div>
-              <p className="text-sm leading-relaxed text-pretty">
-                {buildCoachInsight(habits, today)}
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                <Button size="sm" variant="secondary" onClick={() => setView("coach")}>
-                  Ask Coach
-                </Button>
-                <span className="text-[11px] text-muted-foreground">Personalized from your last 7 days</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs uppercase tracking-wide font-semibold text-primary mb-1">
+                  Coach insight
+                </div>
+                <p className="text-sm leading-relaxed text-pretty">
+                  {buildCoachInsight(habits, today)}
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => setView("coach")}>
+                    Ask Coach
+                  </Button>
+                  <span className="text-[11px] text-muted-foreground">Personalized from your last 7 days</span>
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
-      </motion.section>
+          </Card>
+        </section>
+      </FadeIn>
 
-      {/* Weekly momentum */}
-      <section>
-        <Card className="p-5 card-soft">
+      {/* Weekly Review card */}
+      {weeklyReview && (
+        <FadeIn delay={0.15}>
+          <section className="mb-6">
+            <Card className="p-5 card-premium">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <div className="text-xs uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                    Your week in review
+                  </div>
+                  <div className="font-semibold text-lg">You showed up {weeklyReview.daysShownUp} days this week</div>
+                </div>
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+                  {Math.round(weeklyReview.actualCompletion * 100)}%
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground italic border-l-2 border-primary/40 pl-3 text-pretty">
+                {weeklyReview.coachNote}
+              </p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => setView("weekly_review")}>
+                Build next week&apos;s plan
+                <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+              </Button>
+            </Card>
+          </section>
+        </FadeIn>
+      )}
+
+      {/* Weekly momentum + Timeline preview */}
+      <section className="grid sm:grid-cols-2 gap-4">
+        <Card className="p-5 card-premium">
           <div className="flex items-center justify-between mb-3">
             <div>
               <div className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">
                 Weekly momentum
               </div>
               <div className="text-2xl font-semibold mt-1">
-                {streak}-day consistency streak
+                {streak}-day streak
               </div>
             </div>
             <div className="text-right">
               <div className="text-xs text-muted-foreground">Completion</div>
               <div className="text-xl font-semibold tabular-nums">
-                {Math.round(momentum * 100)}%
+                <AnimatedNumber value={Math.round(momentum * 100)} />%
               </div>
             </div>
           </div>
@@ -270,8 +275,288 @@ export function HomeView() {
             </button>
           </div>
         </Card>
+
+        {/* Timeline preview */}
+        <Card className="p-5 card-premium cursor-pointer card-premium-hover" onClick={() => setView("timeline")}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">
+              Your health journey
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="space-y-2">
+            {timeline.slice(0, 3).map((event) => (
+              <div key={event.id} className="flex items-start gap-2 text-sm">
+                <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{event.title}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 text-xs text-primary font-medium">
+            See full timeline →
+          </div>
+        </Card>
       </section>
+
+      {/* Daily Balance breakdown dialog */}
+      <DailyBalanceDialog
+        open={balanceOpen}
+        onOpenChange={setBalanceOpen}
+        total={dailyBalance}
+        breakdown={balanceBreakdown}
+      />
+
+      {/* Activity session modal */}
+      <ActivitySession />
     </div>
+  );
+}
+
+// ============================================================
+// Next Best Action card with activity state
+// ============================================================
+
+function NextBestActionCard({ nextAction }: { nextAction: ReturnType<typeof getNextBestAction> }) {
+  const startActivity = useAppStore((s) => s.startActivity);
+  const setView = useAppStore((s) => s.setView);
+  const activeActivity = useAppStore((s) => s.activeActivity);
+  const habits = useAppStore((s) => s.habits);
+
+  if (activeActivity) return null; // ActivitySession modal takes over
+
+  const handleStart = () => {
+    if (nextAction.action === "start_walk") {
+      const walkHabit = habits.find((h) => h.id === "walk-20") ?? habits[0];
+      if (walkHabit) {
+        const today = useAppStore.getState().metrics.slice(-1)[0];
+        const stepsRemaining = today ? Math.max(0, today.stepsGoal - today.steps) : 1500;
+        const minutes = Math.max(10, Math.round(stepsRemaining / 130));
+        startActivity(walkHabit.id, walkHabit.title, minutes);
+      }
+    } else if (nextAction.action === "adjust_plan" || nextAction.action === "schedule_habit") {
+      setView("plan_lab");
+    } else {
+      setView("coach");
+    }
+  };
+
+  return (
+    <Card className="p-5 h-full card-premium bg-gradient-to-br from-primary/8 to-background border-beam relative overflow-hidden">
+      <div className="flex items-center gap-2 mb-2">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <span className="text-xs uppercase tracking-wide font-medium text-muted-foreground">
+          {nextAction.title}
+        </span>
+      </div>
+      <p className="text-base font-medium leading-snug text-pretty">
+        {nextAction.body}
+      </p>
+      <div className="mt-4 flex items-center gap-2">
+        <Tactile>
+          <Button size="sm" onClick={handleStart} className="shadow-premium-sm">
+            {nextAction.action === "start_walk" ? "Start walk" : nextAction.action === "adjust_plan" ? "Adjust plan" : nextAction.action === "schedule_habit" ? "Reschedule" : nextAction.action === "tell_me_more" ? "Tell me more" : "Ask coach"}
+            <ArrowRight className="h-3 w-3 ml-1" />
+          </Button>
+        </Tactile>
+        <button
+          onClick={() => setView("coach")}
+          className="text-xs text-muted-foreground hover:text-foreground px-2"
+        >
+          Why this?
+        </button>
+      </div>
+      <div className="mt-3 text-[11px] text-muted-foreground/80 leading-snug border-l-2 border-primary/30 pl-2">
+        {nextAction.reason}
+      </div>
+    </Card>
+  );
+}
+
+// ============================================================
+// Activity session modal — interactive Next Best Action
+// ============================================================
+
+function ActivitySession() {
+  const activeActivity = useAppStore((s) => s.activeActivity);
+  const tickActivity = useAppStore((s) => s.tickActivity);
+  const completeActivity = useAppStore((s) => s.completeActivity);
+  const cancelActivity = useAppStore((s) => s.cancelActivity);
+  const [autoTick, setAutoTick] = useState(false);
+
+  // Auto-advance progress every 2 seconds (simulating real elapsed time at 30x speed)
+  useEffect(() => {
+    if (!activeActivity || activeActivity.completed) return;
+    if (!autoTick) return;
+    const id = setInterval(() => {
+      tickActivity();
+    }, 1500);
+    return () => clearInterval(id);
+  }, [activeActivity, autoTick, tickActivity]);
+
+  if (!activeActivity) return null;
+
+  const pct = Math.round((activeActivity.progressMinutes / activeActivity.durationMinutes) * 100);
+  const remainingMin = activeActivity.durationMinutes - activeActivity.progressMinutes;
+  const remainingSec = remainingMin * 60;
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && cancelActivity()}>
+      <DialogContent className="max-w-md p-0 overflow-hidden">
+        <div className={cn(
+          "p-6 text-center relative",
+          activeActivity.completed ? "bg-gradient-to-br from-primary/15 to-background" : "bg-gradient-to-br from-primary/5 to-background"
+        )}>
+          <button onClick={cancelActivity} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground" aria-label="Close">
+            <X className="h-4 w-4" />
+          </button>
+
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: MOTION.duration.standard, ease: MOTION.easing.spring }}
+            className="relative inline-flex mb-4"
+          >
+            <ProgressRing
+              value={pct}
+              size={120}
+              strokeWidth={8}
+              showLabel={false}
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              {activeActivity.completed ? (
+                <CheckCircle2 className="h-10 w-10 text-primary" />
+              ) : (
+                <>
+                  <div className="text-3xl font-semibold tabular-nums">
+                    {activeActivity.progressMinutes}:{String((remainingSec % 60)).padStart(2, "0").slice(0, 2)}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {activeActivity.completed ? "Done" : "min elapsed"}
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+
+          <AnimatePresence mode="wait">
+            {activeActivity.completed ? (
+              <motion.div
+                key="done"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: MOTION.duration.standard }}
+              >
+                <div className="relative">
+                  <ConfettiBurst trigger={true} />
+                  <h2 className="text-2xl font-semibold tracking-tight">Nice work.</h2>
+                  <p className="mt-1 text-muted-foreground text-pretty">
+                    You showed up today. Your streak and progress have been updated.
+                  </p>
+                </div>
+                <Button className="mt-5 shadow-premium-sm" onClick={completeActivity}>
+                  <CheckCircle2 className="h-4 w-4 mr-1.5" />
+                  Complete & save
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="active"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                <h2 className="text-xl font-semibold tracking-tight">{activeActivity.title}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {activeActivity.durationMinutes}-minute session · {pct}% complete
+                </p>
+                <div className="mt-5 flex items-center justify-center gap-2">
+                  {!autoTick ? (
+                    <Button onClick={() => setAutoTick(true)} className="shadow-premium-sm">
+                      <Play className="h-4 w-4 mr-1.5" />
+                      Start session
+                    </Button>
+                  ) : (
+                    <Button variant="outline" onClick={() => setAutoTick(false)}>
+                      <Pause className="h-4 w-4 mr-1.5" />
+                      Pause
+                    </Button>
+                  )}
+                  <Button variant="ghost" onClick={completeActivity}>
+                    Skip to end
+                  </Button>
+                </div>
+                <p className="mt-4 text-[11px] text-muted-foreground">
+                  Auto-advances every 1.5s for demo. In production this would be a real timer.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============================================================
+// Daily Balance breakdown dialog
+// ============================================================
+
+function DailyBalanceDialog({
+  open,
+  onOpenChange,
+  total,
+  breakdown,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  total: number;
+  breakdown: { label: string; value: number; icon: LucideIcon; reason: string }[];
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Why this score?</DialogTitle>
+          <DialogDescription>
+            Daily Balance is a wellness signal, not a medical score. It combines movement, sleep, habits, and recovery into one number you can act on.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          {breakdown.map((b) => {
+            const Icon = b.icon;
+            return (
+              <div key={b.label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{b.label}</span>
+                    <span className="text-sm font-semibold tabular-nums">+{b.value}</span>
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">{b.reason}</div>
+                </div>
+              </div>
+            );
+          })}
+          <div className="pt-3 border-t border-border flex items-center justify-between">
+            <span className="font-semibold">Total</span>
+            <span className="text-2xl font-semibold tabular-nums">
+              <AnimatedNumber value={total} />
+            </span>
+          </div>
+          <div className="text-center text-xs text-muted-foreground">
+            {total >= 80 ? "Good momentum — keep it going." : total >= 60 ? "Steady day. One small action lifts it." : "A rest day. Tomorrow is a fresh start."}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -293,7 +578,7 @@ function HabitMiniCard({
   progress: number;
 }) {
   return (
-    <Card className="p-4 card-soft card-soft-hover">
+    <Card className="p-4 card-premium card-premium-hover">
       <div className="flex items-center gap-2 mb-2">
         <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
           <Icon className="h-3.5 w-3.5" />
@@ -307,33 +592,59 @@ function HabitMiniCard({
   );
 }
 
-function HabitRow({ habit, onToggle }: { habit: Habit; onToggle: () => void }) {
+function HabitRow({ habit, onToggle, celebrate }: { habit: Habit; onToggle: () => void; celebrate: boolean }) {
   const completed = habit.history[habit.history.length - 1];
   return (
-    <button
-      onClick={onToggle}
-      className="w-full flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors text-left"
-    >
-      <div
-        className={cn(
-          "h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
-          completed ? "bg-primary border-primary text-primary-foreground" : "border-border"
-        )}
-      >
-        {completed && <span className="text-[10px]">✓</span>}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className={cn("text-sm font-medium", completed && "text-muted-foreground line-through")}>
-          {habit.title}
-        </div>
-        <div className="text-xs text-muted-foreground mt-0.5">
-          {habit.scheduledTime} · {habit.currentStreak}-day streak
-        </div>
-      </div>
-      <Badge variant="outline" className="text-[10px]">
-        {habit.completedThisWeek}/{habit.targetPerWeek}
-      </Badge>
-    </button>
+    <div className="relative">
+      <Tactile>
+        <button
+          onClick={onToggle}
+          className="w-full flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors text-left"
+        >
+          <div className="relative">
+            <motion.div
+              className={cn(
+                "h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                completed ? "bg-primary border-primary text-primary-foreground" : "border-border"
+              )}
+              animate={completed ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+              transition={{ duration: 0.4, ease: MOTION.easing.spring }}
+            >
+              <AnimatePresence>
+                {completed && (
+                  <motion.svg
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-3 w-3"
+                  >
+                    <motion.path d="M20 6L9 17l-5-5" />
+                  </motion.svg>
+                )}
+              </AnimatePresence>
+            </motion.div>
+            {celebrate && <ConfettiBurst trigger={celebrate} />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className={cn("text-sm font-medium", completed && "text-muted-foreground line-through")}>
+              {habit.title}
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {habit.scheduledTime} · {habit.currentStreak}-day streak
+            </div>
+          </div>
+          <Badge variant="outline" className="text-[10px]">
+            {habit.completedThisWeek}/{habit.targetPerWeek}
+          </Badge>
+        </button>
+      </Tactile>
+    </div>
   );
 }
 
@@ -363,7 +674,42 @@ function computeDailyBalance(
   const habitScore = (activeHabits.length ? habitDone / activeHabits.length : 0) * 20;
   const stressPenalty = Math.max(0, (today.stressLevel - 50) / 100) * 10;
   const total = stepScore + sleepScore + hydrationScore + habitScore - stressPenalty;
-  return Math.max(0, Math.min(100, Math.round(total + 30))); // baseline 30 so empty days aren't 0
+  return Math.max(0, Math.min(100, Math.round(total + 30)));
+}
+
+function computeBalanceBreakdown(
+  today: { steps: number; stepsGoal: number; sleepHours: number; sleepGoalHours: number; hydrationGlasses: number; hydrationGoal: number; stressLevel: number; stressResetsCompleted: number } | undefined,
+  habits: Habit[]
+): { label: string; value: number; icon: LucideIcon; reason: string }[] {
+  if (!today) return [];
+  const activeHabits = habits.filter((h) => !h.paused);
+  const habitDone = activeHabits.filter((h) => h.history[h.history.length - 1]).length;
+  return [
+    {
+      label: "Movement",
+      value: Math.round(Math.min(25, (today.steps / today.stepsGoal) * 25)),
+      icon: Footprints,
+      reason: `${formatSteps(today.steps)} of ${formatSteps(today.stepsGoal)} steps`,
+    },
+    {
+      label: "Sleep",
+      value: Math.round(Math.min(25, (today.sleepHours / today.sleepGoalHours) * 25)),
+      icon: Moon,
+      reason: `${Math.floor(today.sleepHours)}h ${Math.round((today.sleepHours % 1) * 60)}m of ${today.sleepGoalHours}h`,
+    },
+    {
+      label: "Habits",
+      value: Math.round((activeHabits.length ? habitDone / activeHabits.length : 0) * 20),
+      icon: CheckCircle2,
+      reason: `${habitDone} of ${activeHabits.length} completed today`,
+    },
+    {
+      label: "Recovery",
+      value: Math.round(Math.max(0, 20 - Math.max(0, (today.stressLevel - 50) / 100) * 20 + today.stressResetsCompleted * 5)),
+      icon: Brain,
+      reason: `Stress ${today.stressLevel}/100 · ${today.stressResetsCompleted} reset today`,
+    },
+  ];
 }
 
 function computeWeeklyMomentum(habits: Habit[]): number {
