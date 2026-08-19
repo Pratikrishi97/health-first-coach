@@ -45,7 +45,7 @@ const CATEGORY_ICONS: Record<PlanItem["category"], LucideIcon> = {
   routines: Calendar,
 };
 
-export function TodayPlanView() {
+export function TodayPlanView({ embedded }: { embedded?: boolean }) {
   const todayPlan = useAppStore((s) => s.todayPlan);
   const calendarEvents = useAppStore((s) => s.calendarEvents);
   const pendingAdaptation = useAppStore((s) => s.pendingAdaptation);
@@ -61,7 +61,8 @@ export function TodayPlanView() {
   const totalCount = todayPlan.length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8">
+    <div className={embedded ? "" : "mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8"}>
+      {!embedded && (
       <header className="mb-6">
         <Button variant="ghost" size="sm" onClick={() => setView("home")} className="-ml-2 mb-2">
           <ChevronRight className="h-4 w-4 rotate-180" />
@@ -80,6 +81,7 @@ export function TodayPlanView() {
           {completedCount}/{totalCount} complete · adapts to your life, sleep, and stress.
         </p>
       </header>
+      )}
 
       {/* Life context summary */}
       {lifeContexts.length > 0 && (

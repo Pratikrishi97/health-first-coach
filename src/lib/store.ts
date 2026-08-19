@@ -13,13 +13,18 @@ import type {
   LifeContext,
   LifeContextType,
   PlanAdaptation,
+  PlanAdaptationCascade,
+  PlanHierarchy,
+  PlanHorizon,
   PlanItem,
+  PlanStatus,
   TimelineEvent,
   UserProfile,
 } from "./types";
 import { buildDemoState } from "./demo-data";
 import { getCoachReply } from "./coach-engine";
 import { generateAdaptivePlan } from "./adaptation-engine";
+import { rescheduleAction, createCascadeAdaptation } from "./planning-engine";
 
 // ============================================================
 // Global app store — single source of truth for the prototype
@@ -73,6 +78,21 @@ interface StoreActions {
   setCoachMode: (mode: CoachMode) => void;
   dismissProactiveMessage: (id: string) => void;
   snoozeProactiveMessage: (id: string) => void;
+  // FEATURE 6 — Long-Term Adaptive Planning
+  setPlanHorizon: (horizon: PlanHorizon) => void;
+  adjustMonthlyGoal: (goalId: string, newTarget: number) => void;
+  acceptMonthlyAdjustment: (goalId: string) => void;
+  rescheduleWeeklyAction: (fromDayId: string, toDayId: string) => void;
+  completeWeeklyAction: (dayId: string) => void;
+  skipWeeklyAction: (dayId: string) => void;
+  triggerCascadeAdaptation: (
+    trigger: string,
+    todayChange: string,
+    weekChange: string,
+    monthChange: string,
+    quarterChange: string,
+    message: string
+  ) => void;
 }
 
 type Store = AppState & StoreActions;
@@ -111,6 +131,11 @@ const initialState: AppState = {
   // FEATURE 5 — Coach Silence
   coachMode: "active",
   proactiveMessages: [],
+  // FEATURE 6 — Long-Term Adaptive Planning
+  planHierarchy: null,
+  planHorizon: "today",
+  planningInsights: [],
+  cascadeAdaptations: [],
 };
 
 export const useAppStore = create<Store>()(
@@ -488,6 +513,99 @@ export const useAppStore = create<Store>()(
         }));
         get().track("nudge_snoozed", { id });
       },
+
+      // FEATURE 6 — Long-Term Adaptive Planning
+      setPlanHorizon: (horizon) => {
+        set({ planHorizon: horizon });
+        get().track("plan_viewed", { horizon });
+      },
+
+      adjustMonthlyGoal: (goalId, newTarget) => {
+        set((s) => {
+          if (!s.planHierarchy) return {};
+          const milestones = s.planHierarchy.quarter.milestones.map((m) => ({
+            ...m,
+            goals: m.goals.map((g) =>
+              g.id === goalId
+                ? { ...g, target: newTarget, status: newTarget <= g.current ? "on_track" as PlanStatus : g.status, adjustmentRecommended: undefined }
+                : g
+            ),
+          }));
+          return {
+            planHierarchy: {
+              ...s.planHierarchy,
+              quarter: { ...s.planHierarchy.quarter, milestones },
+              currentMonth: milestones.find((m) => m.current) ?? s.planHierarchy.currentMonth,
+            },
+          };
+        });
+        get().track("goal_adjusted", { goalId, newTarget });
+      },
+
+      acceptMonthlyAdjustment: (goalId) => {
+        const state = get();
+        if (!state.planHierarchy) return;
+        const goal = state.planHierarchy.currentMonth.goals.find((g) => g.id === goalId);
+        if (goal?.adjustmentRecommended) {
+          get().adjustMonthlyGoal(goalId, goal.adjustmentRecommended.newTarget);
+          get().track("monthly_plan_accepted", { goalId });
+        }
+      },
+
+      rescheduleWeeklyAction: (fromDayId, toDayId) => {
+        set((s) => {
+          if (!s.planHierarchy) return {};
+          const newWeek = rescheduleAction(s.planHierarchy.currentWeek, fromDayId, toDayId);
+          return {
+            planHierarchy: {
+              ...s.planHierarchy,
+              currentWeek: newWeek,
+            },
+          };
+        });
+        get().track("plan_item_rescheduled", { fromDayId, toDayId });
+      },
+
+      completeWeeklyAction: (dayId) => {
+        set((s) => {
+          if (!s.planHierarchy) return {};
+          const newWeek = {
+            ...s.planHierarchy.currentWeek,
+            days: s.planHierarchy.currentWeek.days.map((d) =>
+              d.id === dayId ? { ...d, completed: true, skipped: false } : d
+            ),
+            completedSessions: s.planHierarchy.currentWeek.completedSessions + 1,
+          };
+          return {
+            planHierarchy: { ...s.planHierarchy, currentWeek: newWeek },
+          };
+        });
+        get().track("plan_item_completed", { dayId });
+      },
+
+      skipWeeklyAction: (dayId) => {
+        set((s) => {
+          if (!s.planHierarchy) return {};
+          const newWeek = {
+            ...s.planHierarchy.currentWeek,
+            days: s.planHierarchy.currentWeek.days.map((d) =>
+              d.id === dayId ? { ...d, skipped: true, completed: false, adapted: true, adaptationReason: "Skipped by user" } : d
+            ),
+          };
+          return {
+            planHierarchy: { ...s.planHierarchy, currentWeek: newWeek },
+          };
+        });
+        get().track("plan_item_skipped", { dayId });
+      },
+
+      triggerCascadeAdaptation: (trigger, todayChange, weekChange, monthChange, quarterChange, message) => {
+        const cascade = createCascadeAdaptation(trigger, todayChange, weekChange, monthChange, quarterChange, message);
+        set((s) => ({
+          cascadeAdaptations: [cascade, ...s.cascadeAdaptations].slice(0, 10),
+        }));
+        get().track("plan_adapted", { trigger });
+      },
     }),
     {
       name: "health-first-coach",
@@ -522,6 +640,10 @@ export const useAppStore = create<Store>()(
         healthPatterns: s.healthPatterns,
         coachMode: s.coachMode,
         proactiveMessages: s.proactiveMessages,
+        planHierarchy: s.planHierarchy,
+        planHorizon: s.planHorizon,
+        planningInsights: s.planningInsights,
+        cascadeAdaptations: s.cascadeAdaptations,
       }),
     }
   )

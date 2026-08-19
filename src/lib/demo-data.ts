@@ -18,7 +18,10 @@ import type {
   HealthPattern,
   ProactiveMessage,
   CoachMode,
+  PlanHierarchy,
+  PlanningInsight,
 } from "./types";
+import { buildPlanHierarchy, buildPlanningInsights } from "./planning-engine";
 
 // ============================================================
 // Demo data for the primary persona — Raj Sharma
@@ -956,6 +959,8 @@ export function buildDemoProactiveMessages(scenario: DemoScenario): ProactiveMes
 
 export function buildDemoState(scenario: DemoScenario): AppState {
   const { plan, adaptation } = buildDemoTodayPlan(scenario);
+  const planHierarchy = buildPlanHierarchy(scenario);
+  const planningInsights = buildPlanningInsights(scenario);
   return {
     view: "home",
     onboardingStep: 0,
@@ -992,5 +997,10 @@ export function buildDemoState(scenario: DemoScenario): AppState {
     // FEATURE 5 — Coach Silence + Trust Layer
     coachMode: scenario === "recovery" ? "recovery" : "active",
     proactiveMessages: buildDemoProactiveMessages(scenario),
+    // FEATURE 6 — Long-Term Adaptive Planning
+    planHierarchy,
+    planHorizon: "today",
+    planningInsights,
+    cascadeAdaptations: [],
   };
 }

@@ -185,6 +185,11 @@ export interface AppState {
   // FEATURE 5 — Coach Silence + Trust Layer
   coachMode: CoachMode;
   proactiveMessages: ProactiveMessage[];
+  // FEATURE 6 — Long-Term Adaptive Planning
+  planHierarchy: PlanHierarchy | null;
+  planHorizon: PlanHorizon;           // active tab: today/week/month/quarter
+  planningInsights: PlanningInsight[];
+  cascadeAdaptations: PlanAdaptationCascade[];
 }
 
 export interface TimelineEvent {
@@ -235,7 +240,8 @@ export type AppView =
   | "plan_lab"
   | "today_plan"
   | "recovery"
-  | "life_context";
+  | "life_context"
+  | "plan";
 
 export interface AnalyticsEvent {
   type: string;
@@ -434,3 +440,124 @@ export interface ProactiveMessage {
   notificationBurden: number; // 0-1 (high if many recent)
   shouldSpeak: boolean;       // computed
 }
+
+// ============================================================
+// FEATURE 6 — Long-Term Adaptive Planning (Quarter → Month → Week → Today)
+// ============================================================
+
+export type PlanStatus = "on_track" | "adapted" | "needs_attention" | "at_risk" | "completed";
+
+export type PlanHorizon = "today" | "week" | "month" | "quarter";
+
+export interface QuarterlyGoal {
+  id: string;
+  quarterLabel: string;            // "Q3 2024"
+  primaryObjective: string;        // "Build a sustainable fitness and recovery routine"
+  outcomes: QuarterlyOutcome[];
+  milestones: MonthlyMilestone[];   // 3 monthly milestones
+  startDate: string;
+  endDate: string;
+  status: PlanStatus;
+}
+
+export interface QuarterlyOutcome {
+  id: string;
+  label: string;                    // "Movement consistency"
+  baseline: number;                 // 42
+  target: number;                   // 70
+  current: number;                  // 63
+  unit: string;                     // "%" or "sessions"
+  trend: "up" | "down" | "flat";
+  confidence: "low" | "moderate" | "high";
+  status: PlanStatus;
+  rationale?: string;
+}
+
+export interface MonthlyMilestone {
+  id: string;
+  monthLabel: string;              // "Month 1 — Establish"
+  monthNumber: 1 | 2 | 3;
+  focus: string;                   // "Build consistent movement and sleep habits"
+  startDate: string;
+  endDate: string;
+  goals: MonthlyGoal[];
+  status: PlanStatus;
+  current: boolean;                // is this the active month
+}
+
+export interface MonthlyGoal {
+  id: string;
+  label: string;                   // "Movement sessions"
+  target: number;                  // 16
+  current: number;                 // 9
+  projected: number;               // 14 (based on current pace)
+  unit: string;                    // "sessions"
+  status: PlanStatus;
+  adjustmentRecommended?: {
+    newTarget: number;
+    reason: string;
+    difficulty: "easier" | "balanced" | "more_demanding";
+  };
+}
+
+export interface WeeklyPlan {
+  id: string;
+  weekLabel: string;               // "Week of Sept 7"
+  weekNumber: number;              // 1-13 within quarter
+  objective: string;               // "Complete 4 movement sessions without compromising recovery"
+  startDate: string;
+  endDate: string;
+  days: WeeklyDayPlan[];
+  status: PlanStatus;
+  completedSessions: number;
+  targetSessions: number;
+  adaptedSessions: number;
+  recoverySessions: number;
+  current: boolean;                // is this the active week
+}
+
+export interface WeeklyDayPlan {
+  id: string;
+  day: string;                     // "Monday"
+  date: string;                    // ISO date
+  title: string;                   // "15-min walk" or "Recovery" or "Flexible"
+  category: "movement" | "recovery" | "flexible" | "rest" | "outdoor";
+  durationMin: number;
+  completed: boolean;
+  skipped: boolean;
+  movedTo?: string;                // ISO date if moved
+  movedFrom?: string;             // ISO date if moved from elsewhere
+  adapted: boolean;
+  adaptationReason?: string;
+  originalTitle?: string;
+  originalDurationMin?: number;
+}
+
+export interface PlanHierarchy {
+  quarter: QuarterlyGoal;
+  currentMonth: MonthlyMilestone;
+  currentWeek: WeeklyPlan;
+  // today's plan is already in AppState.todayPlan
+}
+
+export interface PlanningInsight {
+  id: string;
+  title: string;
+  body: string;
+  category: "observation" | "recommendation";
+  confidence: "low" | "moderate" | "high";
+  scope: "quarter" | "month" | "week" | "today";
+  action?: string;
+}
+
+export interface PlanAdaptationCascade {
+  id: string;
+  trigger: string;                 // "I only have 10 minutes"
+  todayChange: string;             // "30-min workout → 10-min workout"
+  weekChange: string;              // "Still 4 sessions"
+  monthChange: string;             // "Still achievable"
+  quarterChange: string;           // "No change"
+  message: string;
+  timestamp: string;
+}
+

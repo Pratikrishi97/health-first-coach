@@ -12,7 +12,7 @@ Health-First Coach is an adaptive health coach that understands your health **AN
 
 The core promise: **your plan should fit your life — not the other way around.**
 
-## The 5 Differentiating Capabilities
+## The 6 Differentiating Capabilities
 
 ### 1. Life-Aware Adaptive Plan (Primary Differentiator)
 The plan adapts to your real day — sleep, schedule, travel, energy. Busy day? Workout moves to 6:30 PM. Travel? Switches to portable bodyweight. Poor sleep? Becomes lighter. Not "try harder" — try smarter.
@@ -51,6 +51,18 @@ The coach is not omnipresent. Five modes: Active, Quiet, Focus, Recovery, Off. T
 - **"Should I speak?" decision layer** — usefulness × novelty × (1 - notification burden)
 - Only HIGH priority + high confidence messages surface proactively
 - Trust panel on every recommendation: Why / Data used / Confidence / User control
+
+### 6. Long-Term Adaptive Planning (Quarter → Month → Week → Today)
+A connected planning hierarchy that makes the user's health journey understandable at every time horizon while ensuring daily actions remain adaptive to real life.
+
+- **Quarter view** — primary objective, quarterly outcomes with baseline/target/current/trend/confidence, monthly milestones timeline
+- **Month view** — monthly goals with current/target/projected, adjustment recommendations ("Accept adjustment" when behind)
+- **Week view** — day-by-day schedule with complete/move/skip/replace, plan health status, reschedule dialog
+- **Today view** — integrated as the lowest level of the hierarchy with breadcrumb navigation
+- **Plan cascading** — changing a higher-level target updates lower-level planning; a day-level change preserves weekly/monthly/quarterly targets
+- **Plan status logic** — On track / Adapted / Needs attention / At risk / Completed (never "Failed" or "Broken streak")
+- **Planning insights** — AI-generated observations and recommendations per horizon
+- **Breadcrumb navigation** — Q3 → September → Week 2 → Today with animated transitions
 
 ## Product problem
 

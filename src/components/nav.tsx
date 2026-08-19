@@ -27,11 +27,10 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { view: "home", label: "Home", icon: Home },
-  { view: "today_plan", label: "Plan", icon: Calendar },
+  { view: "plan", label: "Plan", icon: Calendar },
   { view: "coach", label: "Coach", icon: MessageCircle },
   { view: "habits", label: "Habits", icon: CheckCircle2 },
   { view: "progress", label: "Progress", icon: LineChart },
-  { view: "learn", label: "Learn", icon: BookOpen },
   { view: "profile", label: "Profile", icon: User },
 ];
 
@@ -120,7 +119,7 @@ export function SidebarNav() {
                 >
                   <Icon className="h-[18px] w-[18px]" />
                   {item.label}
-                  {item.view === "today_plan" && (
+                  {item.view === "plan" && (
                     <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary pulse-dot" />
                   )}
                 </button>
