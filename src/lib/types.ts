@@ -165,6 +165,7 @@ export interface AppState {
   weeklySummaryEnabled: boolean;
   progressUpdatesEnabled: boolean;
   largeTextMode: boolean;
+  privacyConsents: PrivacyConsents;
   // activity (Next Best Action in-progress state)
   activeActivity: ActiveActivity | null;
   // analytics
@@ -227,6 +228,13 @@ export interface AnalyticsEvent {
 }
 
 export type DemoScenario = "new" | "successful" | "struggling" | "poor_sleep" | "safety";
+
+export interface PrivacyConsents {
+  habitLogs: boolean;
+  wearable: boolean;
+  coachMemory: boolean;
+  analytics: boolean;
+}
 
 // ============================================================
 // Plan output from onboarding

@@ -52,6 +52,37 @@ export function ProgressView() {
     weight: m.weightKg,
   }));
 
+  const hasMetrics = last14.length > 0;
+  const avgSteps = hasMetrics
+    ? Math.round(last14.reduce((s, d) => s + d.steps, 0) / last14.length)
+    : 0;
+  const avgSleep = hasMetrics
+    ? last14.reduce((s, d) => s + d.sleep, 0) / last14.length
+    : 0;
+  const avgStress = hasMetrics
+    ? Math.round(last14.reduce((s, d) => s + d.stress, 0) / last14.length)
+    : 0;
+
+  // Goal progress derived from the user's actual active habits
+  const goalRows = habits
+    .filter((h) => !h.paused)
+    .slice(0, 4)
+    .map((h) => ({
+      icon:
+        h.category === "movement"
+          ? Footprints
+          : h.category === "sleep"
+          ? Moon
+          : h.category === "nutrition"
+          ? Salad
+          : Brain,
+      label: h.title,
+      value: `${h.targetPerWeek}× / week`,
+      pct: h.targetPerWeek
+        ? Math.min(100, Math.round((h.completedThisWeek / h.targetPerWeek) * 100))
+        : 0,
+    }));
+
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8">
       {/* Header */}
@@ -156,7 +187,7 @@ export function ProgressView() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <TrendRow label="14-day average" value={`${Math.round(last14.reduce((s, d) => s + d.steps, 0) / last14.length).toLocaleString()} steps`} />
+          <TrendRow label="14-day average" value={`${avgSteps.toLocaleString()} steps`} />
         </Card>
       </Section>
 
@@ -177,7 +208,7 @@ export function ProgressView() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <TrendRow label="Average" value={`${(last14.reduce((s, d) => s + d.sleep, 0) / last14.length).toFixed(1)}h`} />
+          <TrendRow label="Average" value={`${avgSleep.toFixed(1)}h`} />
         </Card>
 
         <Card className="p-5 card-soft">
@@ -195,13 +226,26 @@ export function ProgressView() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <TrendRow label="Average" value={`${Math.round(last14.reduce((s, d) => s + d.stress, 0) / last14.length)}/100`} />
+          <TrendRow label="Average" value={`${avgStress}/100`} />
         </Card>
       </div>
 
       {/* Insights */}
       <Section title="Observed patterns" subtitle="What we noticed — and how we calculated it">
         <div className="space-y-3">
+          {insights.length === 0 && (
+            <Card className="p-6 card-soft text-center">
+              <div className="h-10 w-10 mx-auto rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+                <Lightbulb className="h-5 w-5" />
+              </div>
+              <div className="font-medium text-sm">Patterns are on their way</div>
+              <p className="text-xs text-muted-foreground mt-1 text-pretty max-w-sm mx-auto">
+                As you log habits over the next week, your coach will surface personal
+                patterns here — your best days, what makes habits stick, and gentle nudges
+                — each with a clear &ldquo;how was this calculated?&rdquo; explanation.
+              </p>
+            </Card>
+          )}
           {insights.map((insight) => {
             const Icon = insight.category === "success" ? TrendingUp : insight.category === "barrier" ? Info : Lightbulb;
             return (
@@ -243,13 +287,18 @@ export function ProgressView() {
       </Section>
 
       {/* Goal progress */}
-      <Section title="Goal progress" subtitle="Your 14-day focus areas">
+      <Section title="Goal progress" subtitle="This week's focus areas">
         <Card className="p-5 card-soft">
           <div className="space-y-3">
-            <GoalProgressRow icon={Footprints} label="Move more" value="20 min · 5 days/week" pct={82} />
-            <GoalProgressRow icon={Moon} label="Sleep better" value="7h+ · 5 days/week" pct={60} />
-            <GoalProgressRow icon={Salad} label="Eat intentionally" value="Protein-rich breakfast · 5 days" pct={40} />
-            <GoalProgressRow icon={Brain} label="Stress reset" value="5 min · 5 days" pct={100} />
+            {goalRows.length ? (
+              goalRows.map((g) => (
+                <GoalProgressRow key={g.label} icon={g.icon} label={g.label} value={g.value} pct={g.pct} />
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                No active habits yet — add a few to see your weekly goal progress here.
+              </p>
+            )}
           </div>
           <Button variant="ghost" size="sm" className="mt-4 w-full" onClick={() => setView("coach")}>
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />

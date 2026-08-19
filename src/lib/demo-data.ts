@@ -2,6 +2,7 @@ import type {
   AppState,
   ContentItem,
   DailyMetric,
+  DeviceProvider,
   Habit,
   InsightCard,
   NudgeItem,
@@ -555,10 +556,228 @@ export function buildDemoState(scenario: DemoScenario): AppState {
     weeklySummaryEnabled: true,
     progressUpdatesEnabled: true,
     largeTextMode: false,
+    privacyConsents: {
+      habitLogs: true,
+      wearable: true,
+      coachMemory: true,
+      analytics: false,
+    },
     activeActivity: null,
     analyticsEvents: [
       { type: "demo_loaded", timestamp: new Date().toISOString(), properties: { scenario } },
     ],
     demoScenario: scenario,
+  };
+}
+
+// ============================================================
+// Starter state — generated from real onboarding answers
+// ============================================================
+// A brand-new user who finishes onboarding (without loading a
+// demo scenario) gets a coherent, personalized plan: habits
+// tuned to their goals, backfilled device metrics so the
+// dashboard and charts are alive, starter content, a timeline
+// seed, and contextual nudges. Progress/streaks start honest
+// (near-zero) — the app grows as they show up.
+// ============================================================
+
+const DEVICE_LABEL: Record<DeviceProvider, string> = {
+  apple_health: "Apple Health",
+  google_health: "Google Health Connect",
+  fitbit: "Fitbit",
+  garmin: "Garmin",
+  oura: "Oura",
+};
+
+function starterHabitPool(): Record<string, Habit> {
+  const createdAt = new Date().toISOString();
+  const base = (h: Omit<Habit, "completedThisWeek" | "currentStreak" | "bestStreak" | "history" | "paused" | "createdAt">): Habit => ({
+    ...h,
+    completedThisWeek: 0,
+    currentStreak: 0,
+    bestStreak: 0,
+    history: [false, false, false, false, false, false, false],
+    paused: false,
+    createdAt,
+  });
+  return {
+    "walk-20": base({
+      id: "walk-20",
+      title: "Walk 20 minutes",
+      description: "A brisk walk — anytime that fits your day.",
+      category: "movement",
+      targetPerWeek: 5,
+      difficulty: "easy",
+      scheduledTime: "18:00",
+    }),
+    "water-8": base({
+      id: "water-8",
+      title: "8 glasses of water",
+      description: "Stay hydrated across the day.",
+      category: "nutrition",
+      targetPerWeek: 7,
+      difficulty: "easy",
+      scheduledTime: "10:00",
+    }),
+    "sleep-1130": base({
+      id: "sleep-1130",
+      title: "Sleep by 11:30 PM",
+      description: "Wind down by 11 PM to be asleep by 11:30.",
+      category: "sleep",
+      targetPerWeek: 5,
+      difficulty: "medium",
+      scheduledTime: "23:00",
+    }),
+    "stress-reset": base({
+      id: "stress-reset",
+      title: "5-minute stress reset",
+      description: "Box breathing or a short walk to decompress.",
+      category: "stress",
+      targetPerWeek: 5,
+      difficulty: "easy",
+      scheduledTime: "15:00",
+    }),
+    "protein-breakfast": base({
+      id: "protein-breakfast",
+      title: "Protein-rich breakfast",
+      description: "Eggs, Greek yogurt, or a protein-rich option before 9 AM.",
+      category: "nutrition",
+      targetPerWeek: 5,
+      difficulty: "medium",
+      scheduledTime: "08:00",
+    }),
+  };
+}
+
+const GOAL_TO_HABITS: Record<string, string[]> = {
+  fitness: ["walk-20"],
+  weight: ["protein-breakfast", "walk-20"],
+  sleep: ["sleep-1130"],
+  stress: ["stress-reset"],
+  nutrition: ["protein-breakfast"],
+  routines: ["walk-20", "stress-reset"],
+};
+
+export function buildStarterHabits(profile: UserProfile): Habit[] {
+  const pool = starterHabitPool();
+  const ids = new Set<string>();
+  [profile.primaryGoal, ...profile.secondaryGoals].forEach((g) => {
+    (GOAL_TO_HABITS[g] ?? []).forEach((id) => ids.add(id));
+  });
+  // Everyone gets a movement + hydration anchor
+  ids.add("walk-20");
+  ids.add("water-8");
+  // If they flagged stress, ensure a reset is present
+  if (profile.stressLevel >= 60) ids.add("stress-reset");
+
+  const ordered = ["walk-20", "sleep-1130", "protein-breakfast", "stress-reset", "water-8"].filter((id) =>
+    ids.has(id)
+  );
+  return ordered.slice(0, 5).map((id) => pool[id]);
+}
+
+export function buildStarterMetrics(profile: UserProfile): DailyMetric[] {
+  const hasDevice = profile.devices.some((d) => d.connected);
+  const activityBaseline: Record<string, number> = {
+    sedentary: 4200,
+    light: 5600,
+    moderate: 7400,
+    active: 9200,
+  };
+  const baseSteps = activityBaseline[profile.activityLevel] ?? 5600;
+  // A wearable backfills recent history on connect; without one we
+  // still seed a light self-reported snapshot so the dashboard works.
+  const days = hasDevice ? 14 : 7;
+  const metrics: DailyMetric[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const date = daysAgoISO(i);
+    const isWeekend = [0, 6].includes(new Date(date).getDay());
+    const variation = Math.round(Math.sin(i * 0.6) * 900 + Math.cos(i * 1.1) * 500);
+    const steps = Math.max(2000, Math.round(baseSteps + variation + (isWeekend ? 800 : 0)));
+    const sleepHours = Math.round((profile.typicalSleepHours + Math.sin(i * 0.4) * 0.5 + (isWeekend ? 0.4 : 0)) * 10) / 10;
+    const stress = Math.max(10, Math.min(95, Math.round(profile.stressLevel + Math.sin(i * 0.5) * 10)));
+    metrics.push({
+      date,
+      steps,
+      stepsGoal: 8000,
+      sleepHours,
+      sleepGoalHours: 7.5,
+      hydrationGlasses: Math.round(4 + Math.random() * 3),
+      hydrationGoal: 8,
+      stressLevel: stress,
+      stressResetsCompleted: Math.random() > 0.5 ? 1 : 0,
+      activeMinutes: Math.round(steps / 130 + (isWeekend ? 10 : 0)),
+      restingHeartRate: hasDevice ? 64 : null,
+      weightKg: profile.weightKg,
+    });
+  }
+  return metrics;
+}
+
+function buildStarterNudges(profile: UserProfile): NudgeItem[] {
+  const nudges: NudgeItem[] = [
+    {
+      id: "nudge-first-win",
+      title: "Your first win is waiting",
+      body: "A 10-minute walk today is enough to start. Small actions compound.",
+      time: "18:00",
+      context: "New plan created — start with one easy action",
+    },
+  ];
+  if (profile.typicalSleepHours < 6.5) {
+    nudges.push({
+      id: "nudge-winddown",
+      title: "Try an earlier wind-down tonight",
+      body: "You mentioned shorter sleep. A 30-minute wind-down makes falling asleep easier.",
+      time: "22:30",
+      context: "Self-reported typical sleep under 6.5h",
+    });
+  }
+  if (profile.stressLevel >= 60) {
+    nudges.push({
+      id: "nudge-reset",
+      title: "A 5-minute reset can help",
+      body: "Your stress felt elevated during setup. A short breathing reset lowers the load.",
+      time: "15:00",
+      context: "Self-reported stress at or above 60/100",
+    });
+  }
+  return nudges;
+}
+
+export function buildStarterState(profile: UserProfile): Partial<AppState> {
+  const habits = buildStarterHabits(profile);
+  const metrics = buildStarterMetrics(profile);
+  const connected = profile.devices.filter((d) => d.connected);
+
+  const timeline: TimelineEvent[] = [
+    {
+      id: `t-plan-${Date.now()}`,
+      date: todayISO(),
+      type: "plan_adapted",
+      title: "Created your Health-First plan",
+      description: `${habits.length} starter habits tuned to your goals. Your coach adapts this as you go.`,
+      icon: "plan",
+    },
+  ];
+  if (connected.length) {
+    timeline.unshift({
+      id: `t-device-${Date.now()}`,
+      date: todayISO(),
+      type: "device_connected",
+      title: `Connected ${DEVICE_LABEL[connected[0].provider]}`,
+      description: "Steps and sleep now sync automatically.",
+      icon: "device",
+    });
+  }
+
+  return {
+    habits,
+    metrics,
+    content: buildDemoContent(),
+    timeline,
+    nudges: buildStarterNudges(profile),
+    insights: [],
+    weeklyReview: null,
   };
 }

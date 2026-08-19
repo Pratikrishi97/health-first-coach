@@ -31,6 +31,7 @@ export function CoachView() {
   const send = useAppStore((s) => s.sendCoachMessage);
   const setView = useAppStore((s) => s.setView);
   const adjustHabit = useAppStore((s) => s.adjustHabit);
+  const startActivity = useAppStore((s) => s.startActivity);
   const habits = useAppStore((s) => s.habits);
   const today = useAppStore((s) => s.metrics[s.metrics.length - 1]);
 
@@ -126,17 +127,39 @@ export function CoachView() {
                   msg={msg}
                   onSuggestion={(s) => {
                     if (s === "adjust_plan") {
-                      const target = habits.find((h) => h.id === "walk-20");
-                      if (target) adjustHabit(target.id, { targetPerWeek: Math.max(3, target.targetPerWeek - 1) });
-                      setView("habits");
+                      const target =
+                        habits.find((h) => h.id === "walk-20") ??
+                        habits.find((h) => !h.paused);
+                      if (target)
+                        adjustHabit(target.id, {
+                          targetPerWeek: Math.max(3, target.targetPerWeek - 1),
+                        });
+                      setView("plan_lab");
                     } else if (s === "schedule_habit") {
-                      setView("habits");
+                      setView("plan_lab");
                     } else if (s === "find_support") {
                       setView("safety");
                     } else if (s === "start_walk") {
-                      setView("home");
+                      const walk =
+                        habits.find((h) => h.id === "walk-20") ??
+                        habits.find((h) => h.category === "movement" && !h.paused) ??
+                        habits.find((h) => !h.paused);
+                      if (walk) {
+                        const stepsRemaining = today
+                          ? Math.max(0, today.stepsGoal - today.steps)
+                          : 1500;
+                        const minutes = Math.max(10, Math.round(stepsRemaining / 130));
+                        startActivity(walk.id, walk.title, minutes);
+                        setView("home");
+                      } else {
+                        setView("home");
+                      }
                     } else if (s === "tell_me_more") {
                       handleSend("Tell me more about the box-breathing reset");
+                    } else if (s === "keep_plan") {
+                      handleSend("Let's keep the plan as is for today");
+                    } else if (s === "continue_wellness") {
+                      handleSend("Let's continue with general wellness coaching");
                     }
                   }}
                 />
@@ -467,7 +490,7 @@ function SuggestionButton({
 
 function buildContextChips(
   today: { sleepHours: number; steps: number; stressLevel: number } | undefined,
-  habits: { history: boolean[] }[]
+  habits: { history: boolean[]; paused: boolean }[]
 ): { label: string; icon: LucideIcon }[] {
   if (!today) {
     return [{ label: "Today's plan", icon: Calendar }];

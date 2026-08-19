@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 import type { AppView } from "@/lib/types";
 import { MOTION } from "@/lib/motion";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface NavItem {
   view: AppView;
@@ -94,6 +95,7 @@ export function SidebarNav() {
             <div className="font-semibold tracking-tight">Health-First</div>
             <div className="text-[11px] text-muted-foreground">Coach</div>
           </div>
+          <ThemeToggle className="ml-auto" />
         </div>
       </div>
 

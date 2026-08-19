@@ -12,7 +12,7 @@ import type {
   TimelineEvent,
   UserProfile,
 } from "./types";
-import { buildDemoState } from "./demo-data";
+import { buildDemoState, buildStarterState } from "./demo-data";
 import { getCoachReply } from "./coach-engine";
 
 // ============================================================
@@ -40,6 +40,7 @@ interface StoreActions {
   setWeeklySummaryEnabled: (v: boolean) => void;
   setProgressUpdatesEnabled: (v: boolean) => void;
   setLargeTextMode: (v: boolean) => void;
+  setPrivacyConsent: (key: keyof AppState["privacyConsents"], value: boolean) => void;
   toggleDevice: (provider: string) => void;
   loadDemo: (scenario: DemoScenario) => void;
   resetAll: () => void;
@@ -71,6 +72,12 @@ const initialState: AppState = {
   weeklySummaryEnabled: true,
   progressUpdatesEnabled: true,
   largeTextMode: false,
+  privacyConsents: {
+    habitLogs: true,
+    wearable: true,
+    coachMemory: true,
+    analytics: false,
+  },
   activeActivity: null,
   analyticsEvents: [],
   demoScenario: "new",
@@ -89,12 +96,21 @@ export const useAppStore = create<Store>()(
       setOnboardingStep: (step) => set({ onboardingStep: step }),
 
       completeOnboarding: (profile) => {
+        const finalProfile = { ...profile, onboardingComplete: true };
+        // Seed a coherent, personalized starter plan so the app is
+        // alive immediately after onboarding (habits, backfilled
+        // device metrics, content, timeline, contextual nudges).
+        const starter = buildStarterState(finalProfile);
         set({
-          profile: { ...profile, onboardingComplete: true },
+          ...starter,
+          profile: finalProfile,
+          coachConversation: [],
+          activeActivity: null,
+          demoScenario: "new",
           view: "home",
         });
-        get().track("onboarding_completed", {});
-        get().track("plan_created", {});
+        get().track("onboarding_completed", { goal: finalProfile.primaryGoal });
+        get().track("plan_created", { habits: starter.habits?.length ?? 0 });
       },
 
       setProfile: (patch) =>
@@ -193,6 +209,11 @@ export const useAppStore = create<Store>()(
       setWeeklySummaryEnabled: (v) => set({ weeklySummaryEnabled: v }),
       setProgressUpdatesEnabled: (v) => set({ progressUpdatesEnabled: v }),
       setLargeTextMode: (v) => set({ largeTextMode: v }),
+
+      setPrivacyConsent: (key, value) => {
+        set((s) => ({ privacyConsents: { ...s.privacyConsents, [key]: value } }));
+        get().track("privacy_consent_changed", { key, value });
+      },
 
       toggleDevice: (provider) => {
         set((s) =>
@@ -318,6 +339,7 @@ export const useAppStore = create<Store>()(
         weeklySummaryEnabled: s.weeklySummaryEnabled,
         progressUpdatesEnabled: s.progressUpdatesEnabled,
         largeTextMode: s.largeTextMode,
+        privacyConsents: s.privacyConsents,
         activeActivity: s.activeActivity,
         analyticsEvents: s.analyticsEvents.slice(-50),
         demoScenario: s.demoScenario,

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   ShieldCheck,
   Lock,
@@ -25,11 +24,8 @@ import { cn } from "@/lib/utils";
 export function PrivacyView() {
   const setView = useAppStore((s) => s.setView);
   const profile = useAppStore((s) => s.profile);
-
-  const [consentHabitLogs, setConsentHabitLogs] = useState(true);
-  const [consentWearable, setConsentWearable] = useState(true);
-  const [consentCoachMemory, setConsentCoachMemory] = useState(true);
-  const [consentAnalytics, setConsentAnalytics] = useState(false);
+  const consents = useAppStore((s) => s.privacyConsents);
+  const setConsent = useAppStore((s) => s.setPrivacyConsent);
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8">
@@ -71,29 +67,29 @@ export function PrivacyView() {
               icon={CheckCircle2}
               label="Goals, habits, and routine info"
               why="To personalize your coaching plan."
-              toggled={consentHabitLogs}
-              onToggle={setConsentHabitLogs}
+              toggled={consents.habitLogs}
+              onToggle={(v) => setConsent("habitLogs", v)}
             />
             <DataItem
               icon={CheckCircle2}
               label="Wearable data (steps, sleep, heart rate)"
               why="To adapt recommendations to your recovery and activity."
-              toggled={consentWearable}
-              onToggle={setConsentWearable}
+              toggled={consents.wearable}
+              onToggle={(v) => setConsent("wearable", v)}
             />
             <DataItem
               icon={Sparkles}
               label="Coach conversation history"
               why="So your coach remembers what matters to you across sessions."
-              toggled={consentCoachMemory}
-              onToggle={setConsentCoachMemory}
+              toggled={consents.coachMemory}
+              onToggle={(v) => setConsent("coachMemory", v)}
             />
             <DataItem
               icon={Eye}
               label="Anonymized product analytics"
               why="To improve the product. Opt-in only — never tied to your identity."
-              toggled={consentAnalytics}
-              onToggle={setConsentAnalytics}
+              toggled={consents.analytics}
+              onToggle={(v) => setConsent("analytics", v)}
               optional
             />
           </div>

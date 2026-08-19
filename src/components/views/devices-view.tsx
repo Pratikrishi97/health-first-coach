@@ -34,6 +34,7 @@ export function DevicesView() {
   const toggleDevice = useAppStore((s) => s.toggleDevice);
   const setView = useAppStore((s) => s.setView);
   const track = useAppStore((s) => s.track);
+  const today = useAppStore((s) => s.metrics[s.metrics.length - 1]);
   const [syncing, setSyncing] = useState<DeviceProvider | null>(null);
 
   if (!profile) return null;
@@ -147,26 +148,48 @@ export function DevicesView() {
         </section>
       )}
 
-      {/* Mock data preview */}
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-          Latest sync preview
-        </h2>
-        <Card className="p-5 card-soft">
-          <div className="space-y-3 text-sm">
-            <SyncRow label="Steps today" value="6,842 / 8,000" status="ok" />
-            <SyncRow label="Sleep last night" value="7h 12m / 7h 30m" status="ok" />
-            <SyncRow label="Resting heart rate" value="61 bpm" status="ok" />
-            <SyncRow label="Active minutes" value="48 / 30" status="ok" />
-            <SyncRow label="Weight" value="79.8 kg" status="ok" />
-            <SyncRow label="Hydration" value="5 / 8 glasses" status="warn" />
-          </div>
-          <div className="mt-3 pt-3 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
-            <AlertCircle className="h-3.5 w-3.5" />
-            Real-time device sync is simulated for the prototype.
-          </div>
-        </Card>
-      </section>
+      {/* Data preview — derived from the user's latest synced metrics */}
+      {connected.length > 0 && today && (
+        <section className="mb-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+            Latest sync preview
+          </h2>
+          <Card className="p-5 card-soft">
+            <div className="space-y-3 text-sm">
+              <SyncRow
+                label="Steps today"
+                value={`${today.steps.toLocaleString()} / ${today.stepsGoal.toLocaleString()}`}
+                status={today.steps >= today.stepsGoal * 0.7 ? "ok" : "warn"}
+              />
+              <SyncRow
+                label="Sleep last night"
+                value={`${Math.floor(today.sleepHours)}h ${Math.round((today.sleepHours % 1) * 60)}m / ${today.sleepGoalHours}h`}
+                status={today.sleepHours >= today.sleepGoalHours * 0.85 ? "ok" : "warn"}
+              />
+              {today.restingHeartRate != null && (
+                <SyncRow label="Resting heart rate" value={`${today.restingHeartRate} bpm`} status="ok" />
+              )}
+              <SyncRow
+                label="Active minutes"
+                value={`${today.activeMinutes} / 30`}
+                status={today.activeMinutes >= 30 ? "ok" : "warn"}
+              />
+              {today.weightKg != null && (
+                <SyncRow label="Weight" value={`${today.weightKg.toFixed(1)} kg`} status="ok" />
+              )}
+              <SyncRow
+                label="Hydration"
+                value={`${today.hydrationGlasses} / ${today.hydrationGoal} glasses`}
+                status={today.hydrationGlasses >= today.hydrationGoal * 0.75 ? "ok" : "warn"}
+              />
+            </div>
+            <div className="mt-3 pt-3 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
+              <AlertCircle className="h-3.5 w-3.5" />
+              Real-time device sync is simulated for the prototype.
+            </div>
+          </Card>
+        </section>
+      )}
     </div>
   );
 }

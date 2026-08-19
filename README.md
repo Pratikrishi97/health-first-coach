@@ -55,6 +55,15 @@ The architecture also supports:
 - **Motion is intentional** — spring physics, staggered entrances, reduced-motion support
 - **Mobile-first** — fully responsive 320/375/768/1024/1440
 - **Accessibility** — keyboard nav, ARIA labels, large-text mode, reduced-motion
+- **Light + dark** — a full dark theme (system-aware) with a toggle in the sidebar and Profile → Appearance
+
+## Onboarding → live plan
+
+Finishing the 7-step onboarding generates a **personalized starter plan** from your
+answers — habits tuned to your goals, backfilled device metrics so the dashboard and
+charts are alive from day one, a curated content library, a seeded timeline, and
+contextual nudges. Progress and streaks start honest (near-zero) and grow as you show
+up. Demo Mode remains available to jump straight into richer, pre-populated states.
 
 ## AI architecture
 
@@ -136,6 +145,12 @@ The app is a standard Next.js project. Deploy to Netlify, Vercel, or any Next.js
 bun run build
 bun run start
 ```
+
+### Netlify
+
+A `netlify.toml` is included and uses the official `@netlify/plugin-nextjs` runtime
+(SSR + API routes + static assets). No environment variables are required — the coach
+engine is deterministic. Build command: `next build`, publish directory: `.next`.
 
 ## Demo scenarios
 

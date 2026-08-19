@@ -28,14 +28,38 @@ const TYPE_LABEL: Record<ContentItem["type"], string> = {
   micro: "Micro-learning",
 };
 
+const GOAL_TO_CONTENT: Record<string, string> = {
+  routines: "routine-breaks",
+  fitness: "walking-habit",
+  weight: "protein-breakfast",
+  nutrition: "protein-breakfast",
+  sleep: "wind-down",
+  stress: "stress-reset-10",
+};
+
+const GOAL_WORD: Record<string, string> = {
+  routines: "building healthier routines",
+  fitness: "improving fitness",
+  weight: "managing weight",
+  nutrition: "eating better",
+  sleep: "sleeping better",
+  stress: "reducing stress",
+};
+
 export function LearnView() {
   const content = useAppStore((s) => s.content);
+  const profile = useAppStore((s) => s.profile);
   const track = useAppStore((s) => s.track);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filter, setFilter] = useState<(typeof CATEGORIES)[number]["id"]>("all");
 
   const filtered = filter === "all" ? content : content.filter((c) => c.category === filter);
   const active = activeId ? content.find((c) => c.id === activeId) : null;
+
+  // Personalized recommendation derived from the user's primary goal.
+  const recommendedId = profile ? GOAL_TO_CONTENT[profile.primaryGoal] : undefined;
+  const recommended =
+    (recommendedId && content.find((c) => c.id === recommendedId)) || content[0] || null;
 
   if (active) {
     return <ContentReader item={active} onBack={() => setActiveId(null)} />;
@@ -75,35 +99,37 @@ export function LearnView() {
       </div>
 
       {/* Recommended for you */}
-      <section className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Lightbulb className="h-3.5 w-3.5 text-primary" />
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Recommended for you
-          </h2>
-        </div>
-        <Card className="p-5 card-soft bg-gradient-to-br from-primary/10 to-background">
-          <p className="text-xs text-muted-foreground mb-2">
-            Because your primary goal is building healthier routines and you struggle with consistency:
-          </p>
-          <h3 className="text-lg font-semibold leading-snug">
-            What to do when your routine breaks
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 text-pretty">
-            Travel, illness, family. Life will interrupt your routine. Here&apos;s how to bounce back fast — in 4 minutes.
-          </p>
-          <Button
-            size="sm"
-            className="mt-3"
-            onClick={() => {
-              setActiveId("routine-breaks");
-              track("content_opened", { id: "routine-breaks" });
-            }}
-          >
-            Read now
-          </Button>
-        </Card>
-      </section>
+      {recommended && (
+        <section className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Lightbulb className="h-3.5 w-3.5 text-primary" />
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Recommended for you
+            </h2>
+          </div>
+          <Card className="p-5 card-soft bg-gradient-to-br from-primary/10 to-background">
+            <p className="text-xs text-muted-foreground mb-2">
+              {profile
+                ? `Because your primary goal is ${GOAL_WORD[profile.primaryGoal] ?? "building healthier habits"}:`
+                : "Handpicked to help you start strong:"}
+            </p>
+            <h3 className="text-lg font-semibold leading-snug">{recommended.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1 text-pretty">
+              {recommended.excerpt}
+            </p>
+            <Button
+              size="sm"
+              className="mt-3"
+              onClick={() => {
+                setActiveId(recommended.id);
+                track("content_opened", { id: recommended.id });
+              }}
+            >
+              Read now · {recommended.readMinutes} min
+            </Button>
+          </Card>
+        </section>
+      )}
 
       {/* All content */}
       <section>

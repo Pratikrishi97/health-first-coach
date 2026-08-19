@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-  /* config options here */
+  // Note: "output: standalone" was used for the container/Caddy setup.
+  // The Netlify Next.js runtime handles the build from the default
+  // ".next" output, so standalone is intentionally omitted here.
   typescript: {
     ignoreBuildErrors: true,
   },

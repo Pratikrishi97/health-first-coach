@@ -37,7 +37,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import type { AppView } from "@/lib/types";
+import { useTheme } from "next-themes";
+import { useIsClient } from "@/hooks/use-is-client";
 
 export function ProfileView() {
   const profile = useAppStore((s) => s.profile);
@@ -178,10 +179,10 @@ export function ProfileView() {
         </Card>
       </Section>
 
-      {/* Accessibility */}
-      <Section title="Accessibility" icon={Heart}>
-        <Card className="p-5 card-soft">
-          <div className="flex items-center justify-between">
+      {/* Accessibility & appearance */}
+      <Section title="Accessibility & appearance" icon={Heart}>
+        <Card className="p-5 card-soft divide-y divide-border">
+          <div className="flex items-center justify-between pb-4">
             <div>
               <Label className="text-sm font-medium">Larger text mode</Label>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -189,6 +190,15 @@ export function ProfileView() {
               </p>
             </div>
             <Switch checked={largeTextMode} onCheckedChange={setLargeTextMode} />
+          </div>
+          <div className="flex items-center justify-between pt-4">
+            <div>
+              <Label className="text-sm font-medium">Dark mode</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Easier on the eyes in low light. Follows your system by default.
+              </p>
+            </div>
+            <DarkModeSwitch />
           </div>
         </Card>
       </Section>
@@ -282,6 +292,19 @@ function Section({ title, icon: Icon, children }: { title: string; icon: typeof 
       </div>
       {children}
     </section>
+  );
+}
+
+function DarkModeSwitch() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const mounted = useIsClient();
+  const isDark = mounted && resolvedTheme === "dark";
+  return (
+    <Switch
+      checked={isDark}
+      onCheckedChange={(v) => setTheme(v ? "dark" : "light")}
+      aria-label="Toggle dark mode"
+    />
   );
 }
 

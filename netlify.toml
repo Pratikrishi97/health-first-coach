@@ -1,0 +1,17 @@
+# Netlify configuration for Health-First Coach (Next.js 16 App Router)
+# The official Next.js runtime plugin handles SSR, API routes, and
+# static assets. No custom secrets are required — the coach engine
+# is deterministic and runs without an LLM key.
+
+[build]
+  command = "next build"
+  publish = ".next"
+
+[build.environment]
+  # Netlify defaults to an older Node; pin to a modern LTS that
+  # supports Next.js 16 / React 19.
+  NODE_VERSION = "20"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

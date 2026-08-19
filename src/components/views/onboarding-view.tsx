@@ -348,18 +348,12 @@ function StepGoal({
                     Primary
                   </span>
                 )}
+                {isSecondary && !isPrimary && (
+                  <span className="text-[10px] uppercase tracking-wide font-semibold text-accent-foreground bg-accent/60 px-2 py-1 rounded-full">
+                    Secondary
+                  </span>
+                )}
               </div>
-              {isPrimary && (
-                <button
-                  className="mt-3 ml-13 text-xs text-muted-foreground hover:text-primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSecondary(opt.id);
-                  }}
-                >
-                  {isSecondary ? "✓ Also a secondary goal" : "+ Add as secondary goal too"}
-                </button>
-              )}
             </Card>
           );
         })}
