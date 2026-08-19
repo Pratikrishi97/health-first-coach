@@ -1,0 +1,2002 @@
+     1→# Build a Production-Quality Prototype: Health-First Digital Health Coach
+     2→
+     3→## ROLE
+     4→
+     5→You are an autonomous senior product designer, product manager, UX researcher, staff frontend engineer, backend engineer, AI engineer, QA engineer, and deployment engineer.
+     6→
+     7→Your job is to independently design, build, test, refine, and deploy a high-fidelity working prototype of a digital health coaching product called **Health-First Coach**.
+     8→
+     9→You have access to this complete product brief and the associated market/user research.
+    10→
+    11→Do **not** ask me for permission for ordinary implementation decisions.
+    12→
+    13→Make sensible product, UX, architecture, technical, and visual decisions autonomously.
+    14→
+    15→Your goal is to produce the **strongest possible product prototype**, not merely satisfy the minimum functional requirements.
+    16→
+    17→Only interrupt me when you are genuinely blocked by something that cannot be reasonably inferred.
+    18→
+    19→---
+    20→
+    21→# 1. PRODUCT CONTEXT
+    22→
+    23→Company:
+    24→
+    25→**Health-First Inc.**
+    26→
+    27→Product:
+    28→
+    29→**Health-First Coach**
+    30→
+    31→Problem:
+    32→
+    33→People know they should eat better, exercise more, sleep better, manage stress, and build healthier routines, but struggle to consistently translate intent into behavior.
+    34→
+    35→Traditional human coaching provides valuable accountability and personalization but is expensive and difficult to scale.
+    36→
+    37→The product opportunity is to create a digital health coach that combines:
+    38→
+    39→* Personalized behavior-change guidance
+    40→* AI-powered conversational coaching
+    41→* Goal setting
+    42→* Daily habit tracking
+    43→* Progress visualization
+    44→* Context-aware nudges
+    45→* Educational content
+    46→* Wearable/device data
+    47→* Motivation and reinforcement
+    48→* Human/clinical escalation when appropriate
+    49→
+    50→The product should feel like:
+    51→
+    52→> "A health coach that understands me, remembers what matters to me, helps me make realistic decisions every day, and adapts as my life changes."
+    53→
+    54→It should NOT feel like:
+    55→
+    56→> "Another spreadsheet for tracking steps, calories, and weight."
+    57→
+    58→---
+    59→
+    60→# 2. IMPORTANT PRODUCT POSITIONING
+    61→
+    62→Use this positioning throughout the experience:
+    63→
+    64→### Core value proposition
+    65→
+    66→**Small actions. Personalized guidance. Lasting habits.**
+    67→
+    68→Health-First Coach helps people turn health goals into sustainable daily behavior through personalized coaching, contextual recommendations, and progress feedback.
+    69→
+    70→### Product philosophy
+    71→
+    72→The product should optimize for:
+    73→
+    74→1. Sustainable behavior change
+    75→2. User trust
+    76→3. Personalization
+    77→4. Low cognitive load
+    78→5. Consistent engagement
+    79→6. Measurable progress
+    80→7. Safety
+    81→8. Privacy
+    82→
+    83→Do not optimize for vanity metrics such as maximum screen time.
+    84→
+    85→---
+    86→
+    87→# 3. RESEARCH-BASED PRODUCT PRINCIPLES
+    88→
+    89→Build around these findings from the research.
+    90→
+    91→## Market observations
+    92→
+    93→The digital health coaching market is growing rapidly, with AI personalization, wearables, preventive health, holistic wellness, and employer/insurer programs among important growth areas. Digital coaching products include players such as Noom, Omada Health, Lark, and WellDoc.
+    94→
+    95→Common competitor patterns include:
+    96→
+    97→* Goal setting
+    98→* Habit tracking
+    99→* Nutrition guidance
+   100→* Fitness tracking
+   101→* Daily lessons
+   102→* AI or human coaching
+   103→* Wearable/device integrations
+   104→* Progress tracking
+   105→* Community/accountability
+   106→* Chronic-condition support
+   107→
+   108→Therefore, do NOT build a generic feature-clone.
+   109→
+   110→Create differentiation around:
+   111→
+   112→### "Adaptive Coaching"
+   113→
+   114→The system should continuously learn:
+   115→
+   116→* What goals matter to the user
+   117→* What motivates them
+   118→* What habits they struggle with
+   119→* What times they engage
+   120→* Which recommendations they accept
+   121→* Which recommendations they ignore
+   122→* What circumstances cause failure
+   123→* What interventions appear helpful
+   124→
+   125→Then dynamically adapt the coaching experience.
+   126→
+   127→---
+   128→
+   129→# 4. PRIMARY PERSONA
+   130→
+   131→Create a primary persona for the prototype:
+   132→
+   133→## Raj — Busy Professional
+   134→
+   135→Age: 35
+   136→
+   137→Lifestyle:
+   138→
+   139→* Desk-based professional
+   140→* Frequently busy
+   141→* Uses smartphone and wearable
+   142→* Irregular exercise
+   143→* Eats inconsistently
+   144→* Often sleeps late
+   145→* Wants better energy and long-term health
+   146→
+   147→Goals:
+   148→
+   149→* Improve fitness
+   150→* Lose excess weight gradually
+   151→* Sleep better
+   152→* Reduce stress
+   153→* Develop sustainable routines
+   154→
+   155→Pain points:
+   156→
+   157→* Lack of time
+   158→* Information overload
+   159→* Too many disconnected health apps
+   160→* Starts routines but does not maintain them
+   161→* Generic reminders become annoying
+   162→* Feels guilty after missing goals
+   163→
+   164→Motivation:
+   165→
+   166→> "Help me become healthier without making health another job."
+   167→
+   168→Technology comfort:
+   169→
+   170→High.
+   171→
+   172→---
+   173→
+   174→# 5. SECONDARY PERSONAS
+   175→
+   176→Design the product architecture so it can later support:
+   177→
+   178→### Alice — Chronic Condition Manager
+   179→
+   180→Age: 55
+   181→
+   182→Needs:
+   183→
+   184→* Structured routines
+   185→* Health metrics
+   186→* More conservative recommendations
+   187→* Device data
+   188→* Potential human/clinical escalation
+   189→
+   190→### Emma — Wellness Optimizer
+   191→
+   192→Age: 28
+   193→
+   194→Needs:
+   195→
+   196→* Fitness
+   197→* Nutrition
+   198→* Stress management
+   199→* Gamification
+   200→* Social challenges
+   201→
+   202→### George — Healthy Aging User
+   203→
+   204→Age: 68
+   205→
+   206→Needs:
+   207→
+   208→* Simple UI
+   209→* Larger typography
+   210→* Reduced cognitive load
+   211→* Clear instructions
+   212→* Accessible navigation
+   213→* Potential caregiver/coach support
+   214→
+   215→The initial prototype should primarily optimize for Raj but demonstrate that the platform architecture can support the broader population.
+   216→
+   217→---
+   218→
+   219→# 6. CORE PRODUCT CONCEPT
+   220→
+   221→Create a mobile-first responsive web application that behaves like a real consumer health application.
+   222→
+   223→Name:
+   224→
+   225→**Health-First**
+   226→
+   227→Tagline:
+   228→
+   229→**Build better days, one habit at a time.**
+   230→
+   231→Primary navigation:
+   232→
+   233→* Home
+   234→* Coach
+   235→* Habits
+   236→* Progress
+   237→* Learn
+   238→* Profile
+   239→
+   240→Desktop can use a left navigation rail/sidebar.
+   241→
+   242→Mobile should use a bottom navigation bar.
+   243→
+   244→---
+   245→
+   246→# 7. DESIGN DIRECTION
+   247→
+   248→Create a premium digital-health visual language.
+   249→
+   250→The product should feel:
+   251→
+   252→* Calm
+   253→* Trustworthy
+   254→* Modern
+   255→* Human
+   256→* Intelligent
+   257→* Warm
+   258→* Minimal
+   259→* Premium
+   260→
+   261→Avoid:
+   262→
+   263→* Hospital-like interfaces
+   264→* Excessive dashboards
+   265→* Aggressive fitness aesthetics
+   266→* Dark neon "AI" styling
+   267→* Generic SaaS admin templates
+   268→
+   269→Visual references may draw inspiration from:
+   270→
+   271→* Apple Health
+   272→* Headspace
+   273→* Calm
+   274→* Oura
+   275→* Noom
+   276→* Modern fintech design systems
+   277→
+   278→But do not copy any branded interface.
+   279→
+   280→---
+   281→
+   282→# 8. UX PRINCIPLE: PROGRESSIVE DISCLOSURE
+   283→
+   284→Do not overwhelm users with every health dimension.
+   285→
+   286→At any moment, surface the **most useful next action**.
+   287→
+   288→Example:
+   289→
+   290→Instead of:
+   291→
+   292→> Steps: 4,823
+   293→> Calories: 1,842
+   294→> Sleep: 6h 12m
+   295→> Water: 1.4L
+   296→> Stress: 62
+   297→> HRV: 42
+   298→> Weight: 79.8kg
+   299→
+   300→Prefer:
+   301→
+   302→> **You're halfway to today's movement goal.**
+   303→>
+   304→> A 15-minute walk after lunch would get you there.
+   305→>
+   306→> **Start a walk**
+   307→
+   308→Then expose detailed information lower in the experience.
+   309→
+   310→---
+   311→
+   312→# 9. ONBOARDING EXPERIENCE
+   313→
+   314→Create a polished multi-step onboarding flow.
+   315→
+   316→The onboarding should feel conversational rather than like a medical questionnaire.
+   317→
+   318→Target:
+   319→
+   320→**3–5 minutes maximum.**
+   321→
+   322→Steps:
+   323→
+   324→### Step 1 — Welcome
+   325→
+   326→Headline:
+   327→
+   328→> Let's build a healthier routine that fits your life.
+   329→
+   330→CTA:
+   331→
+   332→**Get started**
+   333→
+   334→---
+   335→
+   336→### Step 2 — Primary goal
+   337→
+   338→Allow selection:
+   339→
+   340→* Improve fitness
+   341→* Lose weight
+   342→* Sleep better
+   343→* Reduce stress
+   344→* Eat better
+   345→* Build healthier routines
+   346→
+   347→Allow one primary goal and optional secondary goals.
+   348→
+   349→---
+   350→
+   351→### Step 3 — Current routine
+   352→
+   353→Ask lightweight questions:
+   354→
+   355→* Typical sleep duration
+   356→* Activity level
+   357→* Work style
+   358→* Eating pattern
+   359→* Current exercise frequency
+   360→* Stress level
+   361→
+   362→Use friendly cards/sliders instead of long forms.
+   363→
+   364→---
+   365→
+   366→### Step 4 — Biggest challenge
+   367→
+   368→Choices:
+   369→
+   370→* Motivation
+   371→* Time
+   372→* Consistency
+   373→* Food choices
+   374→* Exercise
+   375→* Sleep
+   376→* Stress
+   377→* Knowing what to do
+   378→
+   379→---
+   380→
+   381→### Step 5 — Preferences
+   382→
+   383→Ask:
+   384→
+   385→> How would you like your coach to support you?
+   386→
+   387→Options:
+   388→
+   389→* Gentle
+   390→* Encouraging
+   391→* Direct
+   392→* Data-driven
+   393→
+   394→This preference should influence AI responses.
+   395→
+   396→---
+   397→
+   398→### Step 6 — Device connection
+   399→
+   400→Show optional integrations:
+   401→
+   402→* Apple Health
+   403→* Google Health Connect
+   404→* Fitbit
+   405→* Garmin
+   406→* Oura
+   407→
+   408→For prototype purposes, use realistic simulated data.
+   409→
+   410→Clearly mark these as demo connections.
+   411→
+   412→---
+   413→
+   414→### Step 7 — Personalized plan
+   415→
+   416→Generate a beautiful personalized summary.
+   417→
+   418→Example:
+   419→
+   420→> **Your Health-First plan**
+   421→>
+   422→> Your focus for the next 14 days:
+   423→>
+   424→> **Move more**
+   425→> 20 minutes of movement, 5 days/week
+   426→>
+   427→> **Sleep better**
+   428→> Aim for 7+ hours
+   429→>
+   430→> **Eat intentionally**
+   431→> Add one protein + vegetable-rich meal each day
+   432→>
+   433→> **Stress reset**
+   434→> 5-minute reset on demanding workdays
+   435→
+   436→Include:
+   437→
+   438→**Your first win → 10-minute walk today**
+   439→
+   440→CTA:
+   441→
+   442→**Start my plan**
+   443→
+   444→This should feel like the "aha" moment.
+   445→
+   446→---
+   447→
+   448→# 10. HOME / DAILY COACH DASHBOARD
+   449→
+   450→This is the most important screen.
+   451→
+   452→The home screen should answer:
+   453→
+   454→> "What should I do today?"
+   455→
+   456→Structure:
+   457→
+   458→### Header
+   459→
+   460→Good morning, Raj.
+   461→
+   462→Small contextual message:
+   463→
+   464→> You have a busy day ahead. Let's keep today's plan simple.
+   465→
+   466→---
+   467→
+   468→### Daily Health Snapshot
+   469→
+   470→Show:
+   471→
+   472→* Movement
+   473→* Sleep
+   474→* Nutrition
+   475→* Stress
+   476→
+   477→But summarize them intelligently.
+   478→
+   479→Example:
+   480→
+   481→**Today's health score**
+   482→
+   483→78
+   484→
+   485→"You're on track."
+   486→
+   487→Do NOT present this as a medical score.
+   488→
+   489→Label it:
+   490→
+   491→**Daily Balance**
+   492→
+   493→or
+   494→
+   495→**Habit Momentum**
+   496→
+   497→---
+   498→
+   499→### Today's Focus
+   500→
+   501→One primary recommended action.
+   502→
+   503→Example:
+   504→
+   505→> **Your next best step**
+   506→>
+   507→> A 15-minute walk after lunch will bring you within 500 steps of your movement target.
+   508→>
+   509→> **Start walk**
+   510→
+   511→---
+   512→
+   513→### Habit cards
+   514→
+   515→Example:
+   516→
+   517→Movement
+   518→**6,842 / 8,000 steps**
+   519→
+   520→Sleep
+   521→**7h 12m**
+   522→
+   523→Hydration
+   524→**5 / 8 glasses**
+   525→
+   526→Stress reset
+   527→**1 / 1 completed**
+   528→
+   529→Cards should visually communicate progress quickly.
+   530→
+   531→---
+   532→
+   533→### Coach insight
+   534→
+   535→Example:
+   536→
+   537→> **Coach insight**
+   538→>
+   539→> You've completed your evening walk 4 days in a row.
+   540→>
+   541→> Let's use that momentum to add one short morning movement session this week.
+   542→
+   543→CTA:
+   544→
+   545→**Ask Coach**
+   546→
+   547→---
+   548→
+   549→### Weekly momentum
+   550→
+   551→Display:
+   552→
+   553→**5-day consistency streak**
+   554→
+   555→with simple visualization.
+   556→
+   557→Avoid gamification becoming childish.
+   558→
+   559→---
+   560→
+   561→# 11. AI COACH EXPERIENCE
+   562→
+   563→This should be one of the strongest parts of the prototype.
+   564→
+   565→Create a dedicated Coach screen.
+   566→
+   567→The AI coach should have a conversational interface.
+   568→
+   569→Header:
+   570→
+   571→**Your Coach**
+   572→
+   573→Subtext:
+   574→
+   575→> Personalized guidance based on your goals, habits, and progress.
+   576→
+   577→Conversation example:
+   578→
+   579→User:
+   580→
+   581→> "I didn't sleep well last night and I'm exhausted."
+   582→
+   583→Coach:
+   584→
+   585→> "Let's make today lighter. Instead of pushing for your usual workout, I'd suggest a 15-minute walk and an earlier wind-down tonight."
+   586→>
+   587→> "Want me to adjust today's plan?"
+   588→
+   589→Buttons:
+   590→
+   591→**Adjust my plan**
+   592→
+   593→**Keep my plan**
+   594→
+   595→**Tell me more**
+   596→
+   597→---
+   598→
+   599→# 12. COACH CAPABILITIES
+   600→
+   601→The AI should demonstrate:
+   602→
+   603→### Goal awareness
+   604→
+   605→Remember user's goals.
+   606→
+   607→### Habit awareness
+   608→
+   609→Know recent behavior.
+   610→
+   611→### Context awareness
+   612→
+   613→Use:
+   614→
+   615→* Time
+   616→* Day
+   617→* Recent activity
+   618→* Sleep
+   619→* Completed habits
+   620→* Missed habits
+   621→
+   622→### Adaptive coaching
+   623→
+   624→If the user repeatedly fails a goal:
+   625→
+   626→Don't say:
+   627→
+   628→> "Try harder."
+   629→
+   630→Say:
+   631→
+   632→> "You’ve missed the 7 AM workout three times. Let's move it to lunchtime when your schedule is more predictable."
+   633→
+   634→### Motivational interviewing principles
+   635→
+   636→Ask rather than dictate.
+   637→
+   638→Example:
+   639→
+   640→> "Would you rather reduce the goal for today or move it to this evening?"
+   641→
+   642→### Positive reinforcement
+   643→
+   644→Celebrate progress without being excessive.
+   645→
+   646→### Failure recovery
+   647→
+   648→When users miss goals:
+   649→
+   650→> "One missed day doesn't reset your progress. Let's make tomorrow easier."
+   651→
+   652→---
+   653→
+   654→# 13. AI SAFETY
+   655→
+   656→This is critical.
+   657→
+   658→The AI must NOT:
+   659→
+   660→* Diagnose disease
+   661→* Prescribe medication
+   662→* Recommend changing medication dosage
+   663→* Claim certainty about medical conditions
+   664→* Pretend to be a doctor
+   665→* Give emergency medical treatment instructions
+   666→* Generate unsupported clinical recommendations
+   667→
+   668→The coach should explicitly distinguish wellness guidance from medical advice.
+   669→
+   670→For concerning requests:
+   671→
+   672→> "I can help with general wellness guidance, but I can't diagnose or treat a medical condition. For symptoms like these, please contact a qualified healthcare professional."
+   673→
+   674→Create a visible emergency/help pathway.
+   675→
+   676→For high-risk scenarios, show:
+   677→
+   678→**Talk to a professional**
+   679→
+   680→and appropriate escalation UX.
+   681→
+   682→Do not make unsupported claims that the app can detect medical emergencies.
+   683→
+   684→---
+   685→
+   686→# 14. CONTEXTUAL NUDGING
+   687→
+   688→Do not create generic notification spam.
+   689→
+   690→Build a simulated "Smart Nudges" engine.
+   691→
+   692→Examples:
+   693→
+   694→If user usually walks at 6 PM:
+   695→
+   696→> "You normally walk around this time. Want to keep the streak going?"
+   697→
+   698→If user missed workout:
+   699→
+   700→> "Today got busy. A 10-minute version still counts."
+   701→
+   702→If user has poor sleep:
+   703→
+   704→> "Your sleep was shorter than usual. Let's reduce today's workout intensity."
+   705→
+   706→The goal is:
+   707→
+   708→**Right message + right moment + right intensity.**
+   709→
+   710→---
+   711→
+   712→# 15. HABITS SCREEN
+   713→
+   714→Create a dedicated habit management experience.
+   715→
+   716→Show:
+   717→
+   718→* Active habits
+   719→* Completion percentage
+   720→* Weekly consistency
+   721→* Current streak
+   722→* Trend
+   723→* Difficulty
+   724→* Goal
+   725→
+   726→Example:
+   727→
+   728→### Walk 20 minutes
+   729→
+   730→4 / 5 days
+   731→
+   732→80%
+   733→
+   734→### Sleep by 11:30 PM
+   735→
+   736→3 / 5 days
+   737→
+   738→60%
+   739→
+   740→### 5-minute stress reset
+   741→
+   742→5 / 5 days
+   743→
+   744→100%
+   745→
+   746→Include:
+   747→
+   748→**Adjust habit**
+   749→
+   750→This should allow the user to:
+   751→
+   752→* Change target
+   753→* Change frequency
+   754→* Change timing
+   755→* Pause habit
+   756→* Replace habit
+   757→
+   758→This demonstrates adaptive product behavior.
+   759→
+   760→---
+   761→
+   762→# 16. PROGRESS SCREEN
+   763→
+   764→Do not build a giant analytics dashboard.
+   765→
+   766→Use meaningful storytelling.
+   767→
+   768→Header:
+   769→
+   770→**Your progress**
+   771→
+   772→Main message:
+   773→
+   774→> You're becoming more consistent.
+   775→
+   776→Show trends:
+   777→
+   778→* Habit consistency
+   779→* Activity
+   780→* Sleep
+   781→* Weight if user chooses to track
+   782→* Stress
+   783→* Goal progress
+   784→
+   785→Use charts sparingly and beautifully.
+   786→
+   787→Example:
+   788→
+   789→### Consistency
+   790→
+   791→Week 1 → 42%
+   792→
+   793→Week 2 → 58%
+   794→
+   795→Week 3 → 71%
+   796→
+   797→Then:
+   798→
+   799→> **You're completing 69% more habits than when you started.**
+   800→
+   801→Only calculate this from demo data.
+   802→
+   803→---
+   804→
+   805→# 17. INSIGHT CARDS
+   806→
+   807→Create AI-generated insight examples:
+   808→
+   809→> Your best days are Tuesdays and Thursdays.
+   810→
+   811→> You are more likely to complete your workout when it is under 20 minutes.
+   812→
+   813→> Your sleep improves on days you stop caffeine earlier.
+   814→
+   815→These should clearly be positioned as:
+   816→
+   817→**Observed patterns**
+   818→
+   819→not clinical conclusions.
+   820→
+   821→Include:
+   822→
+   823→**How was this calculated?**
+   824→
+   825→This reinforces trust.
+   826→
+   827→---
+   828→
+   829→# 18. LEARN / EDUCATION
+   830→
+   831→Create a curated content library.
+   832→
+   833→Categories:
+   834→
+   835→* Nutrition
+   836→* Movement
+   837→* Sleep
+   838→* Stress
+   839→* Healthy routines
+   840→
+   841→Content cards:
+   842→
+   843→* 5-minute articles
+   844→* Short guides
+   845→* Practical tips
+   846→* Recipes
+   847→* Micro-learning
+   848→
+   849→Prioritize practical behavior-oriented content.
+   850→
+   851→Examples:
+   852→
+   853→**How to build a sustainable walking habit**
+   854→
+   855→**What to do when your routine breaks**
+   856→
+   857→**A 10-minute stress reset**
+   858→
+   859→**Protein-rich breakfast ideas**
+   860→
+   861→Avoid medical claims.
+   862→
+   863→---
+   864→
+   865→# 19. PERSONALIZATION
+   866→
+   867→Create a visible "For You" layer.
+   868→
+   869→Example:
+   870→
+   871→> **Recommended for you**
+   872→
+   873→Based on:
+   874→
+   875→* Primary goal
+   876→* Habit history
+   877→* Preferred coaching tone
+   878→* Schedule
+   879→* Recent behavior
+   880→* Device data
+   881→
+   882→Examples:
+   883→
+   884→> Because you slept less last night → lighter activity recommendation.
+   885→
+   886→> Because you completed 4 walks this week → increase challenge slightly.
+   887→
+   888→> Because evening workouts are more consistent → schedule your next goal for 6 PM.
+   889→
+   890→The prototype should demonstrate that personalization changes the product experience.
+   891→
+   892→---
+   893→
+   894→# 20. DEVICE DATA
+   895→
+   896→Create simulated device integrations.
+   897→
+   898→Show:
+   899→
+   900→Apple Health — Connected
+   901→
+   902→Fitbit — Connected
+   903→
+   904→Garmin — Not connected
+   905→
+   906→Oura — Connect
+   907→
+   908→Create a mock sync experience.
+   909→
+   910→Simulated data:
+   911→
+   912→* Steps
+   913→* Heart rate
+   914→* Sleep duration
+   915→* Active minutes
+   916→* Weight
+   917→
+   918→Make the architecture extensible so real APIs could later replace mock data.
+   919→
+   920→---
+   921→
+   922→# 21. NOTIFICATIONS / SMART NUDGES SCREEN
+   923→
+   924→Create a settings area where users can control:
+   925→
+   926→* Reminder frequency
+   927→* Preferred coaching time
+   928→* Habit reminders
+   929→* Weekly summary
+   930→* Progress updates
+   931→
+   932→Use adaptive defaults.
+   933→
+   934→Allow:
+   935→
+   936→**Pause all nudges**
+   937→
+   938→This reinforces respect for the user.
+   939→
+   940→---
+   941→
+   942→# 22. PROFILE
+   943→
+   944→Include:
+   945→
+   946→* Personal goals
+   947→* Coaching style
+   948→* Connected devices
+   949→* Notification preferences
+   950→* Privacy
+   951→* Data permissions
+   952→* Account settings
+   953→
+   954→Create a visible:
+   955→
+   956→**Your data**
+   957→
+   958→section.
+   959→
+   960→Show:
+   961→
+   962→What the product stores:
+   963→
+   964→* Goals
+   965→* Habit activity
+   966→* Wellness data
+   967→* Device data
+   968→
+   969→Allow:
+   970→
+   971→**Download my data**
+   972→
+   973→**Delete my account**
+   974→
+   975→For the prototype, these can use mock behavior but must look realistic.
+   976→
+   977→---
+   978→
+   979→# 23. TRUST + PRIVACY UX
+   980→
+   981→Health data is sensitive.
+   982→
+   983→Create a dedicated privacy experience.
+   984→
+   985→Include:
+   986→
+   987→### Data transparency
+   988→
+   989→> Your health information belongs to you.
+   990→
+   991→Show:
+   992→
+   993→* What data is collected
+   994→* Why it is collected
+   995→* Which integrations are connected
+   996→* What the AI uses
+   997→* What is shared
+   998→* How to delete data
+   999→
+  1000→Include explicit consent patterns where appropriate.
+  1001→
+  1002→Do not imply regulatory certification that has not actually been implemented.
+  1003→
+  1004→Use language such as:
+  1005→
+  1006→**Prototype privacy controls**
+  1007→
+  1008→rather than falsely claiming:
+  1009→
+  1010→**HIPAA certified**
+  1011→
+  1012→or:
+  1013→
+  1014→**HIPAA compliant**
+  1015→
+  1016→unless the implementation genuinely supports the relevant requirements.
+  1017→
+  1018→---
+  1019→
+  1020→# 24. HUMAN / CLINICAL ESCALATION
+  1021→
+  1022→Create an escalation pathway without pretending the prototype is a clinical device.
+  1023→
+  1024→Example:
+  1025→
+  1026→Coach detects that the user is asking a potentially medical question.
+  1027→
+  1028→Response:
+  1029→
+  1030→> "This is outside what I can safely advise on. Would you like help finding a healthcare professional?"
+  1031→
+  1032→CTA:
+  1033→
+  1034→**Find support**
+  1035→
+  1036→Secondary:
+  1037→
+  1038→**Continue with wellness coaching**
+  1039→
+  1040→Also create an optional:
+  1041→
+  1042→**Connect with a coach**
+  1043→
+  1044→screen.
+  1045→
+  1046→This demonstrates that AI is not intended to replace human care.
+  1047→
+  1048→---
+  1049→
+  1050→# 25. COMMUNITY — FUTURE-READY, NOT MVP-HEAVY
+  1051→
+  1052→Do NOT make social/community the primary MVP feature.
+  1053→
+  1054→You may include a lightweight future-state preview:
+  1055→
+  1056→**Challenges**
+  1057→
+  1058→Example:
+  1059→
+  1060→> 7-Day Movement Challenge
+  1061→
+  1062→But prioritize individual behavior change first.
+  1063→
+  1064→---
+  1065→
+  1066→# 26. PRODUCT DIFFERENTIATION
+  1067→
+  1068→The prototype should communicate these differentiators:
+  1069→
+  1070→### 1. Adaptive coaching
+  1071→
+  1072→The plan changes based on behavior.
+  1073→
+  1074→### 2. Contextual nudging
+  1075→
+  1076→Timing and messaging adapt to the user.
+  1077→
+  1078→### 3. One next best action
+  1079→
+  1080→Reduce decision fatigue.
+  1081→
+  1082→### 4. Behavior-first analytics
+  1083→
+  1084→Focus on consistency, not vanity metrics.
+  1085→
+  1086→### 5. Trustworthy AI
+  1087→
+  1088→Explain boundaries and uncertainty.
+  1089→
+  1090→### 6. Hybrid escalation
+  1091→
+  1092→AI first, human support when appropriate.
+  1093→
+  1094→### 7. Unified health context
+  1095→
+  1096→Combine goals + habits + wearable data + conversations.
+  1097→
+  1098→---
+  1099→
+  1100→# 27. MVP SCOPE
+  1101→
+  1102→Do not attempt to fully build every possible digital-health capability.
+  1103→
+  1104→The working prototype must prioritize:
+  1105→
+  1106→### Must work
+  1107→
+  1108→* Onboarding
+  1109→* Personalized plan creation
+  1110→* Home dashboard
+  1111→* Habit tracking
+  1112→* AI coach conversation
+  1113→* Adaptive recommendations
+  1114→* Progress tracking
+  1115→* Smart nudges
+  1116→* Simulated wearable data
+  1117→* Profile
+  1118→* Privacy controls
+  1119→* Safety/escalation flow
+  1120→
+  1121→### Can be simulated
+  1122→
+  1123→* Wearable API connections
+  1124→* AI model backend
+  1125→* Analytics
+  1126→* Notifications
+  1127→* Human coach scheduling
+  1128→* Data export
+  1129→
+  1130→### Future-state placeholders
+  1131→
+  1132→* Real insurer integration
+  1133→* EHR integration
+  1134→* Real clinician workflows
+  1135→* Clinical-grade predictive models
+  1136→* International localization
+  1137→* B2B employer dashboard
+  1138→
+  1139→---
+  1140→
+  1141→# 28. TECHNICAL ARCHITECTURE
+  1142→
+  1143→Choose the simplest modern architecture capable of delivering a polished prototype.
+  1144→
+  1145→Preferred stack:
+  1146→
+  1147→### Frontend
+  1148→
+  1149→React + TypeScript
+  1150→
+  1151→Prefer:
+  1152→
+  1153→* Next.js or Vite
+  1154→* Tailwind CSS
+  1155→* shadcn/ui or equivalent high-quality component system
+  1156→* Recharts or equivalent for visualization
+  1157→* Lucide icons
+  1158→
+  1159→### Backend
+  1160→
+  1161→Use a lightweight API architecture.
+  1162→
+  1163→Preferred:
+  1164→
+  1165→Next.js API routes/server actions OR
+  1166→
+  1167→Supabase.
+  1168→
+  1169→Use Supabase when persistence/auth is beneficial.
+  1170→
+  1171→### Database
+  1172→
+  1173→Supabase/Postgres or equivalent.
+  1174→
+  1175→Tables conceptually:
+  1176→
+  1177→users
+  1178→
+  1179→profiles
+  1180→
+  1181→goals
+  1182→
+  1183→habits
+  1184→
+  1185→habit_logs
+  1186→
+  1187→daily_metrics
+  1188→
+  1189→coach_conversations
+  1190→
+  1191→coach_messages
+  1192→
+  1193→recommendations
+  1194→
+  1195→content
+  1196→
+  1197→device_connections
+  1198→
+  1199→notifications
+  1200→
+  1201→privacy_preferences
+  1202→
+  1203→analytics_events
+  1204→
+  1205→---
+  1206→
+  1207→# 29. AI IMPLEMENTATION
+  1208→
+  1209→Build the AI layer so that the prototype works even without a production LLM API key.
+  1210→
+  1211→Create an abstraction:
+  1212→
+  1213→`CoachService`
+  1214→
+  1215→with:
+  1216→
+  1217→* context builder
+  1218→* safety filter
+  1219→* response generator
+  1220→* recommendation engine
+  1221→
+  1222→If no API key is available:
+  1223→
+  1224→Use a deterministic demo coaching engine with realistic responses.
+  1225→
+  1226→If an API key can safely be configured through environment variables:
+  1227→
+  1228→Support an LLM provider through a server-side API.
+  1229→
+  1230→NEVER expose secrets in the frontend.
+  1231→
+  1232→The prototype should still function without external API credentials.
+  1233→
+  1234→---
+  1235→
+  1236→# 30. PERSONALIZATION ENGINE
+  1237→
+  1238→Build a simple rules-based personalization engine behind the product.
+  1239→
+  1240→Example:
+  1241→
+  1242→```text
+  1243→IF sleep < 6 hours
+  1244→THEN reduce workout intensity
+  1245→
+  1246→IF habit_completion >= 80%
+  1247→THEN suggest gradual progression
+  1248→
+  1249→IF habit_completion < 40%
+  1250→THEN reduce habit target and ask about barriers
+  1251→
+  1252→IF user misses same habit >= 3 times
+  1253→THEN suggest changing timing
+  1254→
+  1255→IF stress >= high
+  1256→THEN surface stress-reset recommendation
+  1257→
+  1258→IF user completes goal
+  1259→THEN celebrate and propose next achievable step
+  1260→```
+  1261→
+  1262→Do not hard-code personalization solely inside UI components.
+  1263→
+  1264→Create a service/module so it can later evolve into ML/AI.
+  1265→
+  1266→---
+  1267→
+  1268→# 31. COACH MEMORY
+  1269→
+  1270→Demonstrate memory.
+  1271→
+  1272→The coach should know:
+  1273→
+  1274→* Name
+  1275→* Primary goal
+  1276→* Coaching style
+  1277→* Current habits
+  1278→* Recent successes
+  1279→* Recent struggles
+  1280→
+  1281→Example:
+  1282→
+  1283→User:
+  1284→
+  1285→> "Should I work out today?"
+  1286→
+  1287→Coach:
+  1288→
+  1289→> "You slept 5h 45m last night and mentioned you're feeling drained. I'd keep today light: a 15-minute walk would still move you toward your weekly goal."
+  1290→
+  1291→This is much more impressive than a generic chatbot.
+  1292→
+  1293→---
+  1294→
+  1295→# 32. ANALYTICS
+  1296→
+  1297→Instrument important product events.
+  1298→
+  1299→Examples:
+  1300→
+  1301→```text
+  1302→signup_completed
+  1303→onboarding_started
+  1304→onboarding_completed
+  1305→goal_selected
+  1306→plan_created
+  1307→habit_created
+  1308→habit_completed
+  1309→habit_missed
+  1310→coach_opened
+  1311→coach_message_sent
+  1312→coach_recommendation_accepted
+  1313→coach_recommendation_rejected
+  1314→device_connected
+  1315→progress_viewed
+  1316→content_opened
+  1317→nudge_opened
+  1318→nudge_dismissed
+  1319→escalation_triggered
+  1320→privacy_settings_opened
+  1321→```
+  1322→
+  1323→Create a small internal analytics/debug view if useful.
+  1324→
+  1325→---
+  1326→
+  1327→# 33. SUCCESS METRICS
+  1328→
+  1329→The product strategy should be represented in the code/documentation.
+  1330→
+  1331→North Star Metric:
+  1332→
+  1333→## Weekly Active Users Completing at Least One Meaningful Health Action
+  1334→
+  1335→A meaningful action could be:
+  1336→
+  1337→* Completing a planned habit
+  1338→* Completing a coach-recommended action
+  1339→* Completing an intentional check-in
+  1340→
+  1341→Supporting metrics:
+  1342→
+  1343→### Acquisition
+  1344→
+  1345→* Signup conversion
+  1346→
+  1347→### Activation
+  1348→
+  1349→* Onboarding completion
+  1350→* Time to first value
+  1351→* % creating first goal
+  1352→
+  1353→### Engagement
+  1354→
+  1355→* Weekly active users
+  1356→* Meaningful actions per active user
+  1357→* Coach engagement
+  1358→* Habit completion rate
+  1359→
+  1360→### Retention
+  1361→
+  1362→* 7-day retention
+  1363→* 30-day retention
+  1364→* 90-day retention
+  1365→
+  1366→### Behavior change
+  1367→
+  1368→* Goal attainment
+  1369→* Habit consistency
+  1370→* Improvement from baseline
+  1371→
+  1372→### Satisfaction
+  1373→
+  1374→* CSAT
+  1375→* Coach helpfulness rating
+  1376→* NPS
+  1377→
+  1378→### Trust/Safety
+  1379→
+  1380→* Unsafe-response rate
+  1381→* Escalation accuracy
+  1382→* User-reported trust
+  1383→
+  1384→Do not artificially optimize for DAU alone.
+  1385→
+  1386→---
+  1387→
+  1388→# 34. PRODUCT EXPERIMENTATION
+  1389→
+  1390→Include hooks for future experiments.
+  1391→
+  1392→Example hypotheses:
+  1393→
+  1394→### H1
+  1395→
+  1396→Personalized "next best action" improves weekly meaningful-action completion versus generic dashboards.
+  1397→
+  1398→### H2
+  1399→
+  1400→Adaptive nudges reduce notification fatigue versus fixed daily reminders.
+  1401→
+  1402→### H3
+  1403→
+  1404→Adaptive goals increase habit retention versus static goals.
+  1405→
+  1406→### H4
+  1407→
+  1408→Explaining why a recommendation was generated increases trust.
+  1409→
+  1410→The prototype should be structured so these experiences can be A/B tested later.
+  1411→
+  1412→---
+  1413→
+  1414→# 35. ACCESSIBILITY
+  1415→
+  1416→Build accessibility from the start.
+  1417→
+  1418→Include:
+  1419→
+  1420→* WCAG-conscious contrast
+  1421→* Keyboard navigation
+  1422→* Semantic HTML
+  1423→* Screen-reader labels
+  1424→* Minimum readable typography
+  1425→* Large touch targets
+  1426→* Reduced-motion consideration
+  1427→
+  1428→Design a larger-text mode if practical.
+  1429→
+  1430→---
+  1431→
+  1432→# 36. RESPONSIVE DESIGN
+  1433→
+  1434→The prototype must work beautifully on:
+  1435→
+  1436→* Mobile
+  1437→* Tablet
+  1438→* Desktop
+  1439→
+  1440→Prioritize mobile.
+  1441→
+  1442→Test:
+  1443→
+  1444→320px
+  1445→
+  1446→375px
+  1447→
+  1448→390px
+  1449→
+  1450→768px
+  1451→
+  1452→1024px
+  1453→
+  1454→1440px
+  1455→
+  1456→No horizontal scrolling.
+  1457→
+  1458→---
+  1459→
+  1460→# 37. EMPTY STATES
+  1461→
+  1462→Create polished empty states.
+  1463→
+  1464→Examples:
+  1465→
+  1466→No habits:
+  1467→
+  1468→> You don't have a habit yet.
+  1469→>
+  1470→> Start with one small change.
+  1471→
+  1472→No wearable:
+  1473→
+  1474→> Connect a device to make your coaching more personalized.
+  1475→
+  1476→No progress history:
+  1477→
+  1478→> Your progress story starts today.
+  1479→
+  1480→---
+  1481→
+  1482→# 38. LOADING STATES
+  1483→
+  1484→Implement:
+  1485→
+  1486→* Skeleton screens
+  1487→* Button loading
+  1488→* Coach typing indicator
+  1489→* Sync state
+  1490→* Error states
+  1491→
+  1492→Never leave blank screens.
+  1493→
+  1494→---
+  1495→
+  1496→# 39. ERROR HANDLING
+  1497→
+  1498→Create friendly error states.
+  1499→
+  1500→Example:
+  1501→
+  1502→> We couldn't sync your device.
+  1503→
+  1504→Buttons:
+  1505→
+  1506→**Try again**
+  1507→
+  1508→**Continue without syncing**
+  1509→
+  1510→The product must degrade gracefully.
+  1511→
+  1512→---
+  1513→
+  1514→# 40. DEMO DATA
+  1515→
+  1516→Populate realistic demo data for Raj.
+  1517→
+  1518→Example:
+  1519→
+  1520→Name:
+  1521→Raj Sharma
+  1522→
+  1523→Primary goal:
+  1524→Build healthier routines
+  1525→
+  1526→Current weight:
+  1527→79.8 kg
+  1528→
+  1529→Height:
+  1530→178 cm
+  1531→
+  1532→Daily steps:
+  1533→6,842
+  1534→
+  1535→Goal:
+  1536→8,000
+  1537→
+  1538→Sleep:
+  1539→7h 12m
+  1540→
+  1541→Stress:
+  1542→Moderate
+  1543→
+  1544→Weekly habit completion:
+  1545→71%
+  1546→
+  1547→Current streak:
+  1548→5 days
+  1549→
+  1550→Use realistic variation across days.
+  1551→
+  1552→Do not fabricate medical diagnoses.
+  1553→
+  1554→---
+  1555→
+  1556→# 41. DASHBOARD STORY
+  1557→
+  1558→The application should tell a coherent story from onboarding to daily use.
+  1559→
+  1560→A reviewer should be able to:
+  1561→
+  1562→1. Sign up
+  1563→2. Complete onboarding
+  1564→3. Receive a personalized plan
+  1565→4. Enter the home dashboard
+  1566→5. See today's recommendation
+  1567→6. Chat with the coach
+  1568→7. Complete a habit
+  1569→8. See progress update
+  1570→9. Change a habit
+  1571→10. Experience an adaptive recommendation
+  1572→11. Explore privacy controls
+  1573→12. Experience safety escalation
+  1574→
+  1575→The entire flow should be demoable in approximately 5–10 minutes.
+  1576→
+  1577→---
+  1578→
+  1579→# 42. DEMO MODE
+  1580→
+  1581→Implement a hidden or visible:
+  1582→
+  1583→**Demo Mode**
+  1584→
+  1585→so reviewers can quickly experience important scenarios.
+  1586→
+  1587→Demo scenarios:
+  1588→
+  1589→### Scenario A — New user
+  1590→
+  1591→Fresh onboarding.
+  1592→
+  1593→### Scenario B — Successful user
+  1594→
+  1595→High consistency and positive trends.
+  1596→
+  1597→### Scenario C — Struggling user
+  1598→
+  1599→Several missed habits.
+  1600→
+  1601→Coach adapts the plan.
+  1602→
+  1603→### Scenario D — Poor sleep
+  1604→
+  1605→Sleep drops.
+  1606→
+  1607→Coach recommends lighter activity.
+  1608→
+  1609→### Scenario E — Safety boundary
+  1610→
+  1611→User asks a medical-treatment question.
+  1612→
+  1613→Coach safely refuses and provides escalation pathway.
+  1614→
+  1615→This is extremely important for demonstrating product thinking.
+  1616→
+  1617→---
+  1618→
+  1619→# 43. UI QUALITY BAR
+  1620→
+  1621→The prototype must feel like something that could realistically be shown to:
+  1622→
+  1623→* A product leadership team
+  1624→* Investors
+  1625→* Design reviewers
+  1626→* Engineering leadership
+  1627→* Potential customers
+  1628→
+  1629→Do NOT produce:
+  1630→
+  1631→* Generic CRUD screens
+  1632→* Placeholder boxes
+  1633→* Lorem ipsum
+  1634→* Cheap-looking templates
+  1635→* Excessive gradients
+  1636→* Random stock imagery
+  1637→* Inconsistent typography
+  1638→* Broken mobile layouts
+  1639→
+  1640→Use realistic copy everywhere.
+  1641→
+  1642→---
+  1643→
+  1644→# 44. MICROCOPY
+  1645→
+  1646→Use human language.
+  1647→
+  1648→Bad:
+  1649→
+  1650→> "Complete health task."
+  1651→
+  1652→Good:
+  1653→
+  1654→> "A 10-minute walk counts."
+  1655→
+  1656→Bad:
+  1657→
+  1658→> "Goal incomplete."
+  1659→
+  1660→Good:
+  1661→
+  1662→> "Today got busy. Let's make tomorrow easier."
+  1663→
+  1664→Bad:
+  1665→
+  1666→> "Data unavailable."
+  1667→
+  1668→Good:
+  1669→
+  1670→> "Your watch hasn't synced yet. You can still keep today's plan."
+  1671→
+  1672→---
+  1673→
+  1674→# 45. PRODUCT ETHICS
+  1675→
+  1676→Never create manipulative engagement mechanics.
+  1677→
+  1678→Do not:
+  1679→
+  1680→* Shame users
+  1681→* Use guilt-inducing copy
+  1682→* Punish missed days
+  1683→* Create unhealthy competition
+  1684→* Encourage obsessive tracking
+  1685→* Present wellness estimates as medical facts
+  1686→
+  1687→Reward consistency and recovery, not perfection.
+  1688→
+  1689→---
+  1690→
+  1691→# 46. BUILD PROCESS
+  1692→
+  1693→Operate autonomously.
+  1694→
+  1695→Follow this sequence:
+  1696→
+  1697→### Phase 1 — Product architecture
+  1698→
+  1699→Before coding:
+  1700→
+  1701→* Translate requirements into user flows
+  1702→* Define information architecture
+  1703→* Define component system
+  1704→* Define data model
+  1705→* Define application states
+  1706→* Define API/service boundaries
+  1707→
+  1708→Do not ask me to approve these unless blocked.
+  1709→
+  1710→---
+  1711→
+  1712→### Phase 2 — Design system
+  1713→
+  1714→Create:
+  1715→
+  1716→* Typography system
+  1717→* Spacing system
+  1718→* Cards
+  1719→* Buttons
+  1720→* Inputs
+  1721→* Navigation
+  1722→* Charts
+  1723→* Progress indicators
+  1724→* Toasts
+  1725→* Modals
+  1726→* Coach bubbles
+  1727→* Empty states
+  1728→* Error states
+  1729→
+  1730→Keep the design consistent.
+  1731→
+  1732→---
+  1733→
+  1734→### Phase 3 — Build core experience
+  1735→
+  1736→Implement in this priority:
+  1737→
+  1738→1. Onboarding
+  1739→2. Personalized plan
+  1740→3. Home
+  1741→4. Coach
+  1742→5. Habits
+  1743→6. Progress
+  1744→7. Profile/privacy
+  1745→8. Device integrations
+  1746→9. Safety flows
+  1747→10. Demo mode
+  1748→
+  1749→---
+  1750→
+  1751→### Phase 4 — Backend
+  1752→
+  1753→Implement only the backend necessary for a convincing working prototype.
+  1754→
+  1755→Do not over-engineer.
+  1756→
+  1757→Persist:
+  1758→
+  1759→* User state
+  1760→* Goals
+  1761→* Habits
+  1762→* Habit logs
+  1763→* Coach conversation
+  1764→* Preferences
+  1765→
+  1766→---
+  1767→
+  1768→### Phase 5 — QA
+  1769→
+  1770→Autonomously test:
+  1771→
+  1772→* Every route
+  1773→* Every primary button
+  1774→* Every form
+  1775→* Onboarding state transitions
+  1776→* Habit creation
+  1777→* Habit completion
+  1778→* Coach interaction
+  1779→* Responsive layouts
+  1780→* Error states
+  1781→* Navigation
+  1782→* Refresh persistence
+  1783→* Demo scenarios
+  1784→
+  1785→Fix issues before deployment.
+  1786→
+  1787→---
+  1788→
+  1789→# 47. AUTOMATED TESTING
+  1790→
+  1791→Where practical, create:
+  1792→
+  1793→* Unit tests for personalization logic
+  1794→* Basic component tests
+  1795→* End-to-end smoke tests for onboarding and core flow
+  1796→
+  1797→At minimum verify:
+  1798→
+  1799→```text
+  1800→Signup → Onboarding → Plan → Home → Habit → Progress → Coach
+  1801→```
+  1802→
+  1803→---
+  1804→
+  1805→# 48. SECURITY
+  1806→
+  1807→Use:
+  1808→
+  1809→* Environment variables for secrets
+  1810→* Server-side API calls
+  1811→* No secrets committed to Git
+  1812→* Input validation
+  1813→* Basic authorization
+  1814→* Safe error messages
+  1815→* No unnecessary sensitive data
+  1816→
+  1817→Never hard-code API keys.
+  1818→
+  1819→---
+  1820→
+  1821→# 49. SEO / PUBLIC LANDING PAGE
+  1822→
+  1823→Create a polished public landing page before login.
+  1824→
+  1825→Hero:
+  1826→
+  1827→**Build healthier habits that actually fit your life.**
+  1828→
+  1829→Subheading:
+  1830→
+  1831→> Your personalized digital health coach helps you turn small daily actions into lasting routines.
+  1832→
+  1833→CTA:
+  1834→
+  1835→**Start your health journey**
+  1836→
+  1837→Secondary:
+  1838→
+  1839→**See how it works**
+  1840→
+  1841→Include sections:
+  1842→
+  1843→* Personalized coaching
+  1844→* Adaptive daily plan
+  1845→* Connected health data
+  1846→* Progress that makes sense
+  1847→* Privacy & control
+  1848→* Safety-first AI
+  1849→
+  1850→Use the landing page to communicate product differentiation.
+  1851→
+  1852→---
+  1853→
+  1854→# 50. DEPLOYMENT
+  1855→
+  1856→Deploy the finished prototype to **Netlify**.
+  1857→
+  1858→Use:
+  1859→
+  1860→* Git repository
+  1861→* Production build
+  1862→* Environment variables
+  1863→* Netlify configuration where required
+  1864→
+  1865→Preferred:
+  1866→
+  1867→Frontend hosted on Netlify.
+  1868→
+  1869→Backend may use:
+  1870→
+  1871→* Netlify Functions
+  1872→* Supabase
+  1873→* another lightweight serverless option
+  1874→
+  1875→Choose the architecture that maximizes reliability with minimal operational complexity.
+  1876→
+  1877→---
+  1878→
+  1879→# 51. NETLIFY REQUIREMENTS
+  1880→
+  1881→Before declaring completion:
+  1882→
+  1883→Verify:
+  1884→
+  1885→* Production build succeeds
+  1886→* Routes work on refresh
+  1887→* SPA routing works
+  1888→* Environment variables are configured
+  1889→* API calls work
+  1890→* No console-breaking errors
+  1891→* No broken images
+  1892→* No layout overflow
+  1893→* HTTPS works
+  1894→* Mobile layout works
+  1895→* Core demo flow works
+  1896→
+  1897→If deployment fails:
+  1898→
+  1899→Diagnose and fix automatically.
+  1900→
+  1901→Do not stop at the first build error.
+  1902→
+  1903→---
+  1904→
+  1905→# 52. FINAL SELF-REVIEW
+  1906→
+  1907→Before finishing, act as:
+  1908→
+  1909→### Product Manager
+  1910→
+  1911→Ask:
+  1912→
+  1913→> Does this solve the problem convincingly?
+  1914→
+  1915→### UX Designer
+  1916→
+  1917→Ask:
+  1918→
+  1919→> Is the next action obvious?
+  1920→
+  1921→### User Researcher
+  1922→
+  1923→Ask:
+  1924→
+  1925→> Does this reduce the user's actual pain?
+  1926→
+  1927→### AI Product Manager
+  1928→
+  1929→Ask:
+  1930→
+  1931→> Is the AI truly contextual or is it just a chatbot?
+  1932→
+  1933→### Health Product Manager
+  1934→
+  1935→Ask:
+  1936→
+  1937→> Are safety boundaries clear?
+  1938→
+  1939→### Engineer
+  1940→
+  1941→Ask:
+  1942→
+  1943→> Is the architecture maintainable?
+  1944→
+  1945→### QA Engineer
+  1946→
+  1947→Ask:
+  1948→
+  1949→> Can a reviewer complete the entire core journey without getting stuck?
+  1950→
+  1951→### Executive
+  1952→
+  1953→Ask:
+  1954→
+  1955→> Does this prototype communicate a differentiated product strategy in five minutes?
+  1956→
+  1957→Iterate until the answer is yes.
+  1958→
+  1959→---
+  1960→
+  1961→# 53. IMPORTANT: AUTONOMOUS IMPROVEMENT LOOP
+  1962→
+  1963→After the first implementation, do NOT immediately stop.
+  1964→
+  1965→Perform at least one full refinement cycle.
+  1966→
+  1967→### Cycle
+  1968→
+  1969→Build → Run → Inspect → Identify weaknesses → Improve → Test → Deploy
+  1970→
+  1971→Look specifically for:
+  1972→
+  1973→* UX friction
+  1974→* confusing copy
+  1975→* redundant screens
+  1976→* weak personalization
+  1977→* unrealistic health data
+  1978→* poor visual hierarchy
+  1979→* excessive UI density
+  1980→* broken mobile states
+  1981→* unclear AI safety
+  1982→* weak differentiation
+  1983→
+  1984→Fix these autonomously.
+  1985→
+  1986→---
+  1987→
+  1988→# 54. FINAL DELIVERABLES
+  1989→
+  1990→When complete, provide:
+  1991→
+  1992→### 1. Live production URL
+  1993→
+  1994→Netlify URL.
+  1995→
+  1996→### 2. Repository
+  1997→
+  1998→Git repository URL if created.
+  1999→
+  2000→### 3. Product summary
+
+[showing lines 1-2000 of 2055; use offset=2001 with limit to continue reading]

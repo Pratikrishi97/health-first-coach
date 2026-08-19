@@ -1,0 +1,2054 @@
+# Build a Production-Quality Prototype: Health-First Digital Health Coach
+
+## ROLE
+
+You are an autonomous senior product designer, product manager, UX researcher, staff frontend engineer, backend engineer, AI engineer, QA engineer, and deployment engineer.
+
+Your job is to independently design, build, test, refine, and deploy a high-fidelity working prototype of a digital health coaching product called **Health-First Coach**.
+
+You have access to this complete product brief and the associated market/user research.
+
+Do **not** ask me for permission for ordinary implementation decisions.
+
+Make sensible product, UX, architecture, technical, and visual decisions autonomously.
+
+Your goal is to produce the **strongest possible product prototype**, not merely satisfy the minimum functional requirements.
+
+Only interrupt me when you are genuinely blocked by something that cannot be reasonably inferred.
+
+---
+
+# 1. PRODUCT CONTEXT
+
+Company:
+
+**Health-First Inc.**
+
+Product:
+
+**Health-First Coach**
+
+Problem:
+
+People know they should eat better, exercise more, sleep better, manage stress, and build healthier routines, but struggle to consistently translate intent into behavior.
+
+Traditional human coaching provides valuable accountability and personalization but is expensive and difficult to scale.
+
+The product opportunity is to create a digital health coach that combines:
+
+* Personalized behavior-change guidance
+* AI-powered conversational coaching
+* Goal setting
+* Daily habit tracking
+* Progress visualization
+* Context-aware nudges
+* Educational content
+* Wearable/device data
+* Motivation and reinforcement
+* Human/clinical escalation when appropriate
+
+The product should feel like:
+
+> "A health coach that understands me, remembers what matters to me, helps me make realistic decisions every day, and adapts as my life changes."
+
+It should NOT feel like:
+
+> "Another spreadsheet for tracking steps, calories, and weight."
+
+---
+
+# 2. IMPORTANT PRODUCT POSITIONING
+
+Use this positioning throughout the experience:
+
+### Core value proposition
+
+**Small actions. Personalized guidance. Lasting habits.**
+
+Health-First Coach helps people turn health goals into sustainable daily behavior through personalized coaching, contextual recommendations, and progress feedback.
+
+### Product philosophy
+
+The product should optimize for:
+
+1. Sustainable behavior change
+2. User trust
+3. Personalization
+4. Low cognitive load
+5. Consistent engagement
+6. Measurable progress
+7. Safety
+8. Privacy
+
+Do not optimize for vanity metrics such as maximum screen time.
+
+---
+
+# 3. RESEARCH-BASED PRODUCT PRINCIPLES
+
+Build around these findings from the research.
+
+## Market observations
+
+The digital health coaching market is growing rapidly, with AI personalization, wearables, preventive health, holistic wellness, and employer/insurer programs among important growth areas. Digital coaching products include players such as Noom, Omada Health, Lark, and WellDoc.
+
+Common competitor patterns include:
+
+* Goal setting
+* Habit tracking
+* Nutrition guidance
+* Fitness tracking
+* Daily lessons
+* AI or human coaching
+* Wearable/device integrations
+* Progress tracking
+* Community/accountability
+* Chronic-condition support
+
+Therefore, do NOT build a generic feature-clone.
+
+Create differentiation around:
+
+### "Adaptive Coaching"
+
+The system should continuously learn:
+
+* What goals matter to the user
+* What motivates them
+* What habits they struggle with
+* What times they engage
+* Which recommendations they accept
+* Which recommendations they ignore
+* What circumstances cause failure
+* What interventions appear helpful
+
+Then dynamically adapt the coaching experience.
+
+---
+
+# 4. PRIMARY PERSONA
+
+Create a primary persona for the prototype:
+
+## Raj — Busy Professional
+
+Age: 35
+
+Lifestyle:
+
+* Desk-based professional
+* Frequently busy
+* Uses smartphone and wearable
+* Irregular exercise
+* Eats inconsistently
+* Often sleeps late
+* Wants better energy and long-term health
+
+Goals:
+
+* Improve fitness
+* Lose excess weight gradually
+* Sleep better
+* Reduce stress
+* Develop sustainable routines
+
+Pain points:
+
+* Lack of time
+* Information overload
+* Too many disconnected health apps
+* Starts routines but does not maintain them
+* Generic reminders become annoying
+* Feels guilty after missing goals
+
+Motivation:
+
+> "Help me become healthier without making health another job."
+
+Technology comfort:
+
+High.
+
+---
+
+# 5. SECONDARY PERSONAS
+
+Design the product architecture so it can later support:
+
+### Alice — Chronic Condition Manager
+
+Age: 55
+
+Needs:
+
+* Structured routines
+* Health metrics
+* More conservative recommendations
+* Device data
+* Potential human/clinical escalation
+
+### Emma — Wellness Optimizer
+
+Age: 28
+
+Needs:
+
+* Fitness
+* Nutrition
+* Stress management
+* Gamification
+* Social challenges
+
+### George — Healthy Aging User
+
+Age: 68
+
+Needs:
+
+* Simple UI
+* Larger typography
+* Reduced cognitive load
+* Clear instructions
+* Accessible navigation
+* Potential caregiver/coach support
+
+The initial prototype should primarily optimize for Raj but demonstrate that the platform architecture can support the broader population.
+
+---
+
+# 6. CORE PRODUCT CONCEPT
+
+Create a mobile-first responsive web application that behaves like a real consumer health application.
+
+Name:
+
+**Health-First**
+
+Tagline:
+
+**Build better days, one habit at a time.**
+
+Primary navigation:
+
+* Home
+* Coach
+* Habits
+* Progress
+* Learn
+* Profile
+
+Desktop can use a left navigation rail/sidebar.
+
+Mobile should use a bottom navigation bar.
+
+---
+
+# 7. DESIGN DIRECTION
+
+Create a premium digital-health visual language.
+
+The product should feel:
+
+* Calm
+* Trustworthy
+* Modern
+* Human
+* Intelligent
+* Warm
+* Minimal
+* Premium
+
+Avoid:
+
+* Hospital-like interfaces
+* Excessive dashboards
+* Aggressive fitness aesthetics
+* Dark neon "AI" styling
+* Generic SaaS admin templates
+
+Visual references may draw inspiration from:
+
+* Apple Health
+* Headspace
+* Calm
+* Oura
+* Noom
+* Modern fintech design systems
+
+But do not copy any branded interface.
+
+---
+
+# 8. UX PRINCIPLE: PROGRESSIVE DISCLOSURE
+
+Do not overwhelm users with every health dimension.
+
+At any moment, surface the **most useful next action**.
+
+Example:
+
+Instead of:
+
+> Steps: 4,823
+> Calories: 1,842
+> Sleep: 6h 12m
+> Water: 1.4L
+> Stress: 62
+> HRV: 42
+> Weight: 79.8kg
+
+Prefer:
+
+> **You're halfway to today's movement goal.**
+>
+> A 15-minute walk after lunch would get you there.
+>
+> **Start a walk**
+
+Then expose detailed information lower in the experience.
+
+---
+
+# 9. ONBOARDING EXPERIENCE
+
+Create a polished multi-step onboarding flow.
+
+The onboarding should feel conversational rather than like a medical questionnaire.
+
+Target:
+
+**3–5 minutes maximum.**
+
+Steps:
+
+### Step 1 — Welcome
+
+Headline:
+
+> Let's build a healthier routine that fits your life.
+
+CTA:
+
+**Get started**
+
+---
+
+### Step 2 — Primary goal
+
+Allow selection:
+
+* Improve fitness
+* Lose weight
+* Sleep better
+* Reduce stress
+* Eat better
+* Build healthier routines
+
+Allow one primary goal and optional secondary goals.
+
+---
+
+### Step 3 — Current routine
+
+Ask lightweight questions:
+
+* Typical sleep duration
+* Activity level
+* Work style
+* Eating pattern
+* Current exercise frequency
+* Stress level
+
+Use friendly cards/sliders instead of long forms.
+
+---
+
+### Step 4 — Biggest challenge
+
+Choices:
+
+* Motivation
+* Time
+* Consistency
+* Food choices
+* Exercise
+* Sleep
+* Stress
+* Knowing what to do
+
+---
+
+### Step 5 — Preferences
+
+Ask:
+
+> How would you like your coach to support you?
+
+Options:
+
+* Gentle
+* Encouraging
+* Direct
+* Data-driven
+
+This preference should influence AI responses.
+
+---
+
+### Step 6 — Device connection
+
+Show optional integrations:
+
+* Apple Health
+* Google Health Connect
+* Fitbit
+* Garmin
+* Oura
+
+For prototype purposes, use realistic simulated data.
+
+Clearly mark these as demo connections.
+
+---
+
+### Step 7 — Personalized plan
+
+Generate a beautiful personalized summary.
+
+Example:
+
+> **Your Health-First plan**
+>
+> Your focus for the next 14 days:
+>
+> **Move more**
+> 20 minutes of movement, 5 days/week
+>
+> **Sleep better**
+> Aim for 7+ hours
+>
+> **Eat intentionally**
+> Add one protein + vegetable-rich meal each day
+>
+> **Stress reset**
+> 5-minute reset on demanding workdays
+
+Include:
+
+**Your first win → 10-minute walk today**
+
+CTA:
+
+**Start my plan**
+
+This should feel like the "aha" moment.
+
+---
+
+# 10. HOME / DAILY COACH DASHBOARD
+
+This is the most important screen.
+
+The home screen should answer:
+
+> "What should I do today?"
+
+Structure:
+
+### Header
+
+Good morning, Raj.
+
+Small contextual message:
+
+> You have a busy day ahead. Let's keep today's plan simple.
+
+---
+
+### Daily Health Snapshot
+
+Show:
+
+* Movement
+* Sleep
+* Nutrition
+* Stress
+
+But summarize them intelligently.
+
+Example:
+
+**Today's health score**
+
+78
+
+"You're on track."
+
+Do NOT present this as a medical score.
+
+Label it:
+
+**Daily Balance**
+
+or
+
+**Habit Momentum**
+
+---
+
+### Today's Focus
+
+One primary recommended action.
+
+Example:
+
+> **Your next best step**
+>
+> A 15-minute walk after lunch will bring you within 500 steps of your movement target.
+>
+> **Start walk**
+
+---
+
+### Habit cards
+
+Example:
+
+Movement
+**6,842 / 8,000 steps**
+
+Sleep
+**7h 12m**
+
+Hydration
+**5 / 8 glasses**
+
+Stress reset
+**1 / 1 completed**
+
+Cards should visually communicate progress quickly.
+
+---
+
+### Coach insight
+
+Example:
+
+> **Coach insight**
+>
+> You've completed your evening walk 4 days in a row.
+>
+> Let's use that momentum to add one short morning movement session this week.
+
+CTA:
+
+**Ask Coach**
+
+---
+
+### Weekly momentum
+
+Display:
+
+**5-day consistency streak**
+
+with simple visualization.
+
+Avoid gamification becoming childish.
+
+---
+
+# 11. AI COACH EXPERIENCE
+
+This should be one of the strongest parts of the prototype.
+
+Create a dedicated Coach screen.
+
+The AI coach should have a conversational interface.
+
+Header:
+
+**Your Coach**
+
+Subtext:
+
+> Personalized guidance based on your goals, habits, and progress.
+
+Conversation example:
+
+User:
+
+> "I didn't sleep well last night and I'm exhausted."
+
+Coach:
+
+> "Let's make today lighter. Instead of pushing for your usual workout, I'd suggest a 15-minute walk and an earlier wind-down tonight."
+>
+> "Want me to adjust today's plan?"
+
+Buttons:
+
+**Adjust my plan**
+
+**Keep my plan**
+
+**Tell me more**
+
+---
+
+# 12. COACH CAPABILITIES
+
+The AI should demonstrate:
+
+### Goal awareness
+
+Remember user's goals.
+
+### Habit awareness
+
+Know recent behavior.
+
+### Context awareness
+
+Use:
+
+* Time
+* Day
+* Recent activity
+* Sleep
+* Completed habits
+* Missed habits
+
+### Adaptive coaching
+
+If the user repeatedly fails a goal:
+
+Don't say:
+
+> "Try harder."
+
+Say:
+
+> "You’ve missed the 7 AM workout three times. Let's move it to lunchtime when your schedule is more predictable."
+
+### Motivational interviewing principles
+
+Ask rather than dictate.
+
+Example:
+
+> "Would you rather reduce the goal for today or move it to this evening?"
+
+### Positive reinforcement
+
+Celebrate progress without being excessive.
+
+### Failure recovery
+
+When users miss goals:
+
+> "One missed day doesn't reset your progress. Let's make tomorrow easier."
+
+---
+
+# 13. AI SAFETY
+
+This is critical.
+
+The AI must NOT:
+
+* Diagnose disease
+* Prescribe medication
+* Recommend changing medication dosage
+* Claim certainty about medical conditions
+* Pretend to be a doctor
+* Give emergency medical treatment instructions
+* Generate unsupported clinical recommendations
+
+The coach should explicitly distinguish wellness guidance from medical advice.
+
+For concerning requests:
+
+> "I can help with general wellness guidance, but I can't diagnose or treat a medical condition. For symptoms like these, please contact a qualified healthcare professional."
+
+Create a visible emergency/help pathway.
+
+For high-risk scenarios, show:
+
+**Talk to a professional**
+
+and appropriate escalation UX.
+
+Do not make unsupported claims that the app can detect medical emergencies.
+
+---
+
+# 14. CONTEXTUAL NUDGING
+
+Do not create generic notification spam.
+
+Build a simulated "Smart Nudges" engine.
+
+Examples:
+
+If user usually walks at 6 PM:
+
+> "You normally walk around this time. Want to keep the streak going?"
+
+If user missed workout:
+
+> "Today got busy. A 10-minute version still counts."
+
+If user has poor sleep:
+
+> "Your sleep was shorter than usual. Let's reduce today's workout intensity."
+
+The goal is:
+
+**Right message + right moment + right intensity.**
+
+---
+
+# 15. HABITS SCREEN
+
+Create a dedicated habit management experience.
+
+Show:
+
+* Active habits
+* Completion percentage
+* Weekly consistency
+* Current streak
+* Trend
+* Difficulty
+* Goal
+
+Example:
+
+### Walk 20 minutes
+
+4 / 5 days
+
+80%
+
+### Sleep by 11:30 PM
+
+3 / 5 days
+
+60%
+
+### 5-minute stress reset
+
+5 / 5 days
+
+100%
+
+Include:
+
+**Adjust habit**
+
+This should allow the user to:
+
+* Change target
+* Change frequency
+* Change timing
+* Pause habit
+* Replace habit
+
+This demonstrates adaptive product behavior.
+
+---
+
+# 16. PROGRESS SCREEN
+
+Do not build a giant analytics dashboard.
+
+Use meaningful storytelling.
+
+Header:
+
+**Your progress**
+
+Main message:
+
+> You're becoming more consistent.
+
+Show trends:
+
+* Habit consistency
+* Activity
+* Sleep
+* Weight if user chooses to track
+* Stress
+* Goal progress
+
+Use charts sparingly and beautifully.
+
+Example:
+
+### Consistency
+
+Week 1 → 42%
+
+Week 2 → 58%
+
+Week 3 → 71%
+
+Then:
+
+> **You're completing 69% more habits than when you started.**
+
+Only calculate this from demo data.
+
+---
+
+# 17. INSIGHT CARDS
+
+Create AI-generated insight examples:
+
+> Your best days are Tuesdays and Thursdays.
+
+> You are more likely to complete your workout when it is under 20 minutes.
+
+> Your sleep improves on days you stop caffeine earlier.
+
+These should clearly be positioned as:
+
+**Observed patterns**
+
+not clinical conclusions.
+
+Include:
+
+**How was this calculated?**
+
+This reinforces trust.
+
+---
+
+# 18. LEARN / EDUCATION
+
+Create a curated content library.
+
+Categories:
+
+* Nutrition
+* Movement
+* Sleep
+* Stress
+* Healthy routines
+
+Content cards:
+
+* 5-minute articles
+* Short guides
+* Practical tips
+* Recipes
+* Micro-learning
+
+Prioritize practical behavior-oriented content.
+
+Examples:
+
+**How to build a sustainable walking habit**
+
+**What to do when your routine breaks**
+
+**A 10-minute stress reset**
+
+**Protein-rich breakfast ideas**
+
+Avoid medical claims.
+
+---
+
+# 19. PERSONALIZATION
+
+Create a visible "For You" layer.
+
+Example:
+
+> **Recommended for you**
+
+Based on:
+
+* Primary goal
+* Habit history
+* Preferred coaching tone
+* Schedule
+* Recent behavior
+* Device data
+
+Examples:
+
+> Because you slept less last night → lighter activity recommendation.
+
+> Because you completed 4 walks this week → increase challenge slightly.
+
+> Because evening workouts are more consistent → schedule your next goal for 6 PM.
+
+The prototype should demonstrate that personalization changes the product experience.
+
+---
+
+# 20. DEVICE DATA
+
+Create simulated device integrations.
+
+Show:
+
+Apple Health — Connected
+
+Fitbit — Connected
+
+Garmin — Not connected
+
+Oura — Connect
+
+Create a mock sync experience.
+
+Simulated data:
+
+* Steps
+* Heart rate
+* Sleep duration
+* Active minutes
+* Weight
+
+Make the architecture extensible so real APIs could later replace mock data.
+
+---
+
+# 21. NOTIFICATIONS / SMART NUDGES SCREEN
+
+Create a settings area where users can control:
+
+* Reminder frequency
+* Preferred coaching time
+* Habit reminders
+* Weekly summary
+* Progress updates
+
+Use adaptive defaults.
+
+Allow:
+
+**Pause all nudges**
+
+This reinforces respect for the user.
+
+---
+
+# 22. PROFILE
+
+Include:
+
+* Personal goals
+* Coaching style
+* Connected devices
+* Notification preferences
+* Privacy
+* Data permissions
+* Account settings
+
+Create a visible:
+
+**Your data**
+
+section.
+
+Show:
+
+What the product stores:
+
+* Goals
+* Habit activity
+* Wellness data
+* Device data
+
+Allow:
+
+**Download my data**
+
+**Delete my account**
+
+For the prototype, these can use mock behavior but must look realistic.
+
+---
+
+# 23. TRUST + PRIVACY UX
+
+Health data is sensitive.
+
+Create a dedicated privacy experience.
+
+Include:
+
+### Data transparency
+
+> Your health information belongs to you.
+
+Show:
+
+* What data is collected
+* Why it is collected
+* Which integrations are connected
+* What the AI uses
+* What is shared
+* How to delete data
+
+Include explicit consent patterns where appropriate.
+
+Do not imply regulatory certification that has not actually been implemented.
+
+Use language such as:
+
+**Prototype privacy controls**
+
+rather than falsely claiming:
+
+**HIPAA certified**
+
+or:
+
+**HIPAA compliant**
+
+unless the implementation genuinely supports the relevant requirements.
+
+---
+
+# 24. HUMAN / CLINICAL ESCALATION
+
+Create an escalation pathway without pretending the prototype is a clinical device.
+
+Example:
+
+Coach detects that the user is asking a potentially medical question.
+
+Response:
+
+> "This is outside what I can safely advise on. Would you like help finding a healthcare professional?"
+
+CTA:
+
+**Find support**
+
+Secondary:
+
+**Continue with wellness coaching**
+
+Also create an optional:
+
+**Connect with a coach**
+
+screen.
+
+This demonstrates that AI is not intended to replace human care.
+
+---
+
+# 25. COMMUNITY — FUTURE-READY, NOT MVP-HEAVY
+
+Do NOT make social/community the primary MVP feature.
+
+You may include a lightweight future-state preview:
+
+**Challenges**
+
+Example:
+
+> 7-Day Movement Challenge
+
+But prioritize individual behavior change first.
+
+---
+
+# 26. PRODUCT DIFFERENTIATION
+
+The prototype should communicate these differentiators:
+
+### 1. Adaptive coaching
+
+The plan changes based on behavior.
+
+### 2. Contextual nudging
+
+Timing and messaging adapt to the user.
+
+### 3. One next best action
+
+Reduce decision fatigue.
+
+### 4. Behavior-first analytics
+
+Focus on consistency, not vanity metrics.
+
+### 5. Trustworthy AI
+
+Explain boundaries and uncertainty.
+
+### 6. Hybrid escalation
+
+AI first, human support when appropriate.
+
+### 7. Unified health context
+
+Combine goals + habits + wearable data + conversations.
+
+---
+
+# 27. MVP SCOPE
+
+Do not attempt to fully build every possible digital-health capability.
+
+The working prototype must prioritize:
+
+### Must work
+
+* Onboarding
+* Personalized plan creation
+* Home dashboard
+* Habit tracking
+* AI coach conversation
+* Adaptive recommendations
+* Progress tracking
+* Smart nudges
+* Simulated wearable data
+* Profile
+* Privacy controls
+* Safety/escalation flow
+
+### Can be simulated
+
+* Wearable API connections
+* AI model backend
+* Analytics
+* Notifications
+* Human coach scheduling
+* Data export
+
+### Future-state placeholders
+
+* Real insurer integration
+* EHR integration
+* Real clinician workflows
+* Clinical-grade predictive models
+* International localization
+* B2B employer dashboard
+
+---
+
+# 28. TECHNICAL ARCHITECTURE
+
+Choose the simplest modern architecture capable of delivering a polished prototype.
+
+Preferred stack:
+
+### Frontend
+
+React + TypeScript
+
+Prefer:
+
+* Next.js or Vite
+* Tailwind CSS
+* shadcn/ui or equivalent high-quality component system
+* Recharts or equivalent for visualization
+* Lucide icons
+
+### Backend
+
+Use a lightweight API architecture.
+
+Preferred:
+
+Next.js API routes/server actions OR
+
+Supabase.
+
+Use Supabase when persistence/auth is beneficial.
+
+### Database
+
+Supabase/Postgres or equivalent.
+
+Tables conceptually:
+
+users
+
+profiles
+
+goals
+
+habits
+
+habit_logs
+
+daily_metrics
+
+coach_conversations
+
+coach_messages
+
+recommendations
+
+content
+
+device_connections
+
+notifications
+
+privacy_preferences
+
+analytics_events
+
+---
+
+# 29. AI IMPLEMENTATION
+
+Build the AI layer so that the prototype works even without a production LLM API key.
+
+Create an abstraction:
+
+`CoachService`
+
+with:
+
+* context builder
+* safety filter
+* response generator
+* recommendation engine
+
+If no API key is available:
+
+Use a deterministic demo coaching engine with realistic responses.
+
+If an API key can safely be configured through environment variables:
+
+Support an LLM provider through a server-side API.
+
+NEVER expose secrets in the frontend.
+
+The prototype should still function without external API credentials.
+
+---
+
+# 30. PERSONALIZATION ENGINE
+
+Build a simple rules-based personalization engine behind the product.
+
+Example:
+
+```text
+IF sleep < 6 hours
+THEN reduce workout intensity
+
+IF habit_completion >= 80%
+THEN suggest gradual progression
+
+IF habit_completion < 40%
+THEN reduce habit target and ask about barriers
+
+IF user misses same habit >= 3 times
+THEN suggest changing timing
+
+IF stress >= high
+THEN surface stress-reset recommendation
+
+IF user completes goal
+THEN celebrate and propose next achievable step
+```
+
+Do not hard-code personalization solely inside UI components.
+
+Create a service/module so it can later evolve into ML/AI.
+
+---
+
+# 31. COACH MEMORY
+
+Demonstrate memory.
+
+The coach should know:
+
+* Name
+* Primary goal
+* Coaching style
+* Current habits
+* Recent successes
+* Recent struggles
+
+Example:
+
+User:
+
+> "Should I work out today?"
+
+Coach:
+
+> "You slept 5h 45m last night and mentioned you're feeling drained. I'd keep today light: a 15-minute walk would still move you toward your weekly goal."
+
+This is much more impressive than a generic chatbot.
+
+---
+
+# 32. ANALYTICS
+
+Instrument important product events.
+
+Examples:
+
+```text
+signup_completed
+onboarding_started
+onboarding_completed
+goal_selected
+plan_created
+habit_created
+habit_completed
+habit_missed
+coach_opened
+coach_message_sent
+coach_recommendation_accepted
+coach_recommendation_rejected
+device_connected
+progress_viewed
+content_opened
+nudge_opened
+nudge_dismissed
+escalation_triggered
+privacy_settings_opened
+```
+
+Create a small internal analytics/debug view if useful.
+
+---
+
+# 33. SUCCESS METRICS
+
+The product strategy should be represented in the code/documentation.
+
+North Star Metric:
+
+## Weekly Active Users Completing at Least One Meaningful Health Action
+
+A meaningful action could be:
+
+* Completing a planned habit
+* Completing a coach-recommended action
+* Completing an intentional check-in
+
+Supporting metrics:
+
+### Acquisition
+
+* Signup conversion
+
+### Activation
+
+* Onboarding completion
+* Time to first value
+* % creating first goal
+
+### Engagement
+
+* Weekly active users
+* Meaningful actions per active user
+* Coach engagement
+* Habit completion rate
+
+### Retention
+
+* 7-day retention
+* 30-day retention
+* 90-day retention
+
+### Behavior change
+
+* Goal attainment
+* Habit consistency
+* Improvement from baseline
+
+### Satisfaction
+
+* CSAT
+* Coach helpfulness rating
+* NPS
+
+### Trust/Safety
+
+* Unsafe-response rate
+* Escalation accuracy
+* User-reported trust
+
+Do not artificially optimize for DAU alone.
+
+---
+
+# 34. PRODUCT EXPERIMENTATION
+
+Include hooks for future experiments.
+
+Example hypotheses:
+
+### H1
+
+Personalized "next best action" improves weekly meaningful-action completion versus generic dashboards.
+
+### H2
+
+Adaptive nudges reduce notification fatigue versus fixed daily reminders.
+
+### H3
+
+Adaptive goals increase habit retention versus static goals.
+
+### H4
+
+Explaining why a recommendation was generated increases trust.
+
+The prototype should be structured so these experiences can be A/B tested later.
+
+---
+
+# 35. ACCESSIBILITY
+
+Build accessibility from the start.
+
+Include:
+
+* WCAG-conscious contrast
+* Keyboard navigation
+* Semantic HTML
+* Screen-reader labels
+* Minimum readable typography
+* Large touch targets
+* Reduced-motion consideration
+
+Design a larger-text mode if practical.
+
+---
+
+# 36. RESPONSIVE DESIGN
+
+The prototype must work beautifully on:
+
+* Mobile
+* Tablet
+* Desktop
+
+Prioritize mobile.
+
+Test:
+
+320px
+
+375px
+
+390px
+
+768px
+
+1024px
+
+1440px
+
+No horizontal scrolling.
+
+---
+
+# 37. EMPTY STATES
+
+Create polished empty states.
+
+Examples:
+
+No habits:
+
+> You don't have a habit yet.
+>
+> Start with one small change.
+
+No wearable:
+
+> Connect a device to make your coaching more personalized.
+
+No progress history:
+
+> Your progress story starts today.
+
+---
+
+# 38. LOADING STATES
+
+Implement:
+
+* Skeleton screens
+* Button loading
+* Coach typing indicator
+* Sync state
+* Error states
+
+Never leave blank screens.
+
+---
+
+# 39. ERROR HANDLING
+
+Create friendly error states.
+
+Example:
+
+> We couldn't sync your device.
+
+Buttons:
+
+**Try again**
+
+**Continue without syncing**
+
+The product must degrade gracefully.
+
+---
+
+# 40. DEMO DATA
+
+Populate realistic demo data for Raj.
+
+Example:
+
+Name:
+Raj Sharma
+
+Primary goal:
+Build healthier routines
+
+Current weight:
+79.8 kg
+
+Height:
+178 cm
+
+Daily steps:
+6,842
+
+Goal:
+8,000
+
+Sleep:
+7h 12m
+
+Stress:
+Moderate
+
+Weekly habit completion:
+71%
+
+Current streak:
+5 days
+
+Use realistic variation across days.
+
+Do not fabricate medical diagnoses.
+
+---
+
+# 41. DASHBOARD STORY
+
+The application should tell a coherent story from onboarding to daily use.
+
+A reviewer should be able to:
+
+1. Sign up
+2. Complete onboarding
+3. Receive a personalized plan
+4. Enter the home dashboard
+5. See today's recommendation
+6. Chat with the coach
+7. Complete a habit
+8. See progress update
+9. Change a habit
+10. Experience an adaptive recommendation
+11. Explore privacy controls
+12. Experience safety escalation
+
+The entire flow should be demoable in approximately 5–10 minutes.
+
+---
+
+# 42. DEMO MODE
+
+Implement a hidden or visible:
+
+**Demo Mode**
+
+so reviewers can quickly experience important scenarios.
+
+Demo scenarios:
+
+### Scenario A — New user
+
+Fresh onboarding.
+
+### Scenario B — Successful user
+
+High consistency and positive trends.
+
+### Scenario C — Struggling user
+
+Several missed habits.
+
+Coach adapts the plan.
+
+### Scenario D — Poor sleep
+
+Sleep drops.
+
+Coach recommends lighter activity.
+
+### Scenario E — Safety boundary
+
+User asks a medical-treatment question.
+
+Coach safely refuses and provides escalation pathway.
+
+This is extremely important for demonstrating product thinking.
+
+---
+
+# 43. UI QUALITY BAR
+
+The prototype must feel like something that could realistically be shown to:
+
+* A product leadership team
+* Investors
+* Design reviewers
+* Engineering leadership
+* Potential customers
+
+Do NOT produce:
+
+* Generic CRUD screens
+* Placeholder boxes
+* Lorem ipsum
+* Cheap-looking templates
+* Excessive gradients
+* Random stock imagery
+* Inconsistent typography
+* Broken mobile layouts
+
+Use realistic copy everywhere.
+
+---
+
+# 44. MICROCOPY
+
+Use human language.
+
+Bad:
+
+> "Complete health task."
+
+Good:
+
+> "A 10-minute walk counts."
+
+Bad:
+
+> "Goal incomplete."
+
+Good:
+
+> "Today got busy. Let's make tomorrow easier."
+
+Bad:
+
+> "Data unavailable."
+
+Good:
+
+> "Your watch hasn't synced yet. You can still keep today's plan."
+
+---
+
+# 45. PRODUCT ETHICS
+
+Never create manipulative engagement mechanics.
+
+Do not:
+
+* Shame users
+* Use guilt-inducing copy
+* Punish missed days
+* Create unhealthy competition
+* Encourage obsessive tracking
+* Present wellness estimates as medical facts
+
+Reward consistency and recovery, not perfection.
+
+---
+
+# 46. BUILD PROCESS
+
+Operate autonomously.
+
+Follow this sequence:
+
+### Phase 1 — Product architecture
+
+Before coding:
+
+* Translate requirements into user flows
+* Define information architecture
+* Define component system
+* Define data model
+* Define application states
+* Define API/service boundaries
+
+Do not ask me to approve these unless blocked.
+
+---
+
+### Phase 2 — Design system
+
+Create:
+
+* Typography system
+* Spacing system
+* Cards
+* Buttons
+* Inputs
+* Navigation
+* Charts
+* Progress indicators
+* Toasts
+* Modals
+* Coach bubbles
+* Empty states
+* Error states
+
+Keep the design consistent.
+
+---
+
+### Phase 3 — Build core experience
+
+Implement in this priority:
+
+1. Onboarding
+2. Personalized plan
+3. Home
+4. Coach
+5. Habits
+6. Progress
+7. Profile/privacy
+8. Device integrations
+9. Safety flows
+10. Demo mode
+
+---
+
+### Phase 4 — Backend
+
+Implement only the backend necessary for a convincing working prototype.
+
+Do not over-engineer.
+
+Persist:
+
+* User state
+* Goals
+* Habits
+* Habit logs
+* Coach conversation
+* Preferences
+
+---
+
+### Phase 5 — QA
+
+Autonomously test:
+
+* Every route
+* Every primary button
+* Every form
+* Onboarding state transitions
+* Habit creation
+* Habit completion
+* Coach interaction
+* Responsive layouts
+* Error states
+* Navigation
+* Refresh persistence
+* Demo scenarios
+
+Fix issues before deployment.
+
+---
+
+# 47. AUTOMATED TESTING
+
+Where practical, create:
+
+* Unit tests for personalization logic
+* Basic component tests
+* End-to-end smoke tests for onboarding and core flow
+
+At minimum verify:
+
+```text
+Signup → Onboarding → Plan → Home → Habit → Progress → Coach
+```
+
+---
+
+# 48. SECURITY
+
+Use:
+
+* Environment variables for secrets
+* Server-side API calls
+* No secrets committed to Git
+* Input validation
+* Basic authorization
+* Safe error messages
+* No unnecessary sensitive data
+
+Never hard-code API keys.
+
+---
+
+# 49. SEO / PUBLIC LANDING PAGE
+
+Create a polished public landing page before login.
+
+Hero:
+
+**Build healthier habits that actually fit your life.**
+
+Subheading:
+
+> Your personalized digital health coach helps you turn small daily actions into lasting routines.
+
+CTA:
+
+**Start your health journey**
+
+Secondary:
+
+**See how it works**
+
+Include sections:
+
+* Personalized coaching
+* Adaptive daily plan
+* Connected health data
+* Progress that makes sense
+* Privacy & control
+* Safety-first AI
+
+Use the landing page to communicate product differentiation.
+
+---
+
+# 50. DEPLOYMENT
+
+Deploy the finished prototype to **Netlify**.
+
+Use:
+
+* Git repository
+* Production build
+* Environment variables
+* Netlify configuration where required
+
+Preferred:
+
+Frontend hosted on Netlify.
+
+Backend may use:
+
+* Netlify Functions
+* Supabase
+* another lightweight serverless option
+
+Choose the architecture that maximizes reliability with minimal operational complexity.
+
+---
+
+# 51. NETLIFY REQUIREMENTS
+
+Before declaring completion:
+
+Verify:
+
+* Production build succeeds
+* Routes work on refresh
+* SPA routing works
+* Environment variables are configured
+* API calls work
+* No console-breaking errors
+* No broken images
+* No layout overflow
+* HTTPS works
+* Mobile layout works
+* Core demo flow works
+
+If deployment fails:
+
+Diagnose and fix automatically.
+
+Do not stop at the first build error.
+
+---
+
+# 52. FINAL SELF-REVIEW
+
+Before finishing, act as:
+
+### Product Manager
+
+Ask:
+
+> Does this solve the problem convincingly?
+
+### UX Designer
+
+Ask:
+
+> Is the next action obvious?
+
+### User Researcher
+
+Ask:
+
+> Does this reduce the user's actual pain?
+
+### AI Product Manager
+
+Ask:
+
+> Is the AI truly contextual or is it just a chatbot?
+
+### Health Product Manager
+
+Ask:
+
+> Are safety boundaries clear?
+
+### Engineer
+
+Ask:
+
+> Is the architecture maintainable?
+
+### QA Engineer
+
+Ask:
+
+> Can a reviewer complete the entire core journey without getting stuck?
+
+### Executive
+
+Ask:
+
+> Does this prototype communicate a differentiated product strategy in five minutes?
+
+Iterate until the answer is yes.
+
+---
+
+# 53. IMPORTANT: AUTONOMOUS IMPROVEMENT LOOP
+
+After the first implementation, do NOT immediately stop.
+
+Perform at least one full refinement cycle.
+
+### Cycle
+
+Build → Run → Inspect → Identify weaknesses → Improve → Test → Deploy
+
+Look specifically for:
+
+* UX friction
+* confusing copy
+* redundant screens
+* weak personalization
+* unrealistic health data
+* poor visual hierarchy
+* excessive UI density
+* broken mobile states
+* unclear AI safety
+* weak differentiation
+
+Fix these autonomously.
+
+---
+
+# 54. FINAL DELIVERABLES
+
+When complete, provide:
+
+### 1. Live production URL
+
+Netlify URL.
+
+### 2. Repository
+
+Git repository URL if created.
+
+### 3. Product summary
+
+What was built and why.
+
+### 4. Architecture summary
+
+Frontend, backend, database, AI layer.
+
+### 5. Key product decisions
+
+Explain the highest-impact decisions briefly.
+
+### 6. Prototype credentials
+
+If authentication exists, provide demo credentials.
+
+### 7. Known limitations
+
+Clearly distinguish:
+
+* Real functionality
+* Simulated functionality
+* Future production work
+
+### 8. Suggested next steps
+
+Provide the next 5 highest-value product/engineering improvements.
+
+---
+
+# 55. FINAL SUCCESS CRITERION
+
+Do not judge success by:
+
+> "All requested screens exist."
+
+Judge success by:
+
+> "A product leader can open the URL and immediately understand why this product should exist, who it is for, what makes it different, how the AI creates value, how personalization works, how the user experiences behavior change, and how Health-First would measure whether it works."
+
+Build for that standard.
+
+## DO NOT ASK FOR ROUTINE CONFIRMATION
+
+Make reasonable decisions autonomously.
+
+Only ask me something when:
+
+* A required external credential is unavailable
+* An irreversible product/business decision cannot be inferred
+* A deployment account or permission is genuinely required
+
+Otherwise:
+
+**Decide → Build → Test → Improve → Deploy.**
