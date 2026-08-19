@@ -4,6 +4,11 @@
 
 A premium, production-quality prototype of an adaptive digital health coaching product. Built with Next.js 16, TypeScript, Tailwind CSS 4, shadcn/ui, and Motion for React.
 
+**Live demo:** https://health-first-coach.netlify.app
+**Source:** https://github.com/Pratikrishi97/health-first-coach
+
+> Tip: click **Demo Mode** (bottom-right) to explore the five prebuilt scenarios, or run through onboarding to generate your own personalized plan.
+
 ---
 
 ## Overview
