@@ -19,6 +19,10 @@ import { NudgesView } from "@/components/views/nudges-view";
 import { TimelineView } from "@/components/views/timeline-view";
 import { WeeklyReviewView } from "@/components/views/weekly-review-view";
 import { PlanLabView } from "@/components/views/plan-lab-view";
+import { TodayPlanView } from "@/components/views/today-plan-view";
+import { RecoveryView } from "@/components/views/recovery-view";
+import { LifeContextView } from "@/components/views/life-context-view";
+import { PlanView } from "@/components/views/plan-view";
 import { cn } from "@/lib/utils";
 
 // ============================================================
@@ -96,6 +100,8 @@ export default function Home() {
       <SidebarNav />
       <main className={cn("flex-1 min-w-0", largeTextMode && "text-large-mode")}>
         {view === "home" && <HomeView />}
+        {view === "plan" && <PlanView />}
+        {view === "today_plan" && <TodayPlanView />}
         {view === "habits" && <HabitsView />}
         {view === "progress" && <ProgressView />}
         {view === "learn" && <LearnView />}
@@ -107,6 +113,8 @@ export default function Home() {
         {view === "timeline" && <TimelineView />}
         {view === "weekly_review" && <WeeklyReviewView />}
         {view === "plan_lab" && <PlanLabView />}
+        {view === "recovery" && <RecoveryView />}
+        {view === "life_context" && <LifeContextView />}
       </main>
       <BottomNav />
       <DemoSwitcher />

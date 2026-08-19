@@ -9,6 +9,7 @@ import {
   User,
   Sparkles,
   Calendar,
+  Heart,
   type LucideIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -17,6 +18,7 @@ import { useAppStore } from "@/lib/store";
 import type { AppView } from "@/lib/types";
 import { MOTION } from "@/lib/motion";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CoachModeSwitcher } from "./coach-mode-switcher";
 
 interface NavItem {
   view: AppView;
@@ -26,10 +28,10 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { view: "home", label: "Home", icon: Home },
+  { view: "plan", label: "Plan", icon: Calendar },
   { view: "coach", label: "Coach", icon: MessageCircle },
   { view: "habits", label: "Habits", icon: CheckCircle2 },
   { view: "progress", label: "Progress", icon: LineChart },
-  { view: "learn", label: "Learn", icon: BookOpen },
   { view: "profile", label: "Profile", icon: User },
 ];
 
@@ -78,6 +80,7 @@ export function SidebarNav() {
   const setView = useAppStore((s) => s.setView);
   const profile = useAppStore((s) => s.profile);
   const weeklyReview = useAppStore((s) => s.weeklyReview);
+  const recovery = useAppStore((s) => s.recovery);
 
   return (
     <aside className="hidden md:flex flex-col w-60 shrink-0 border-r border-border bg-sidebar h-screen sticky top-0">
@@ -118,13 +121,16 @@ export function SidebarNav() {
                 >
                   <Icon className="h-[18px] w-[18px]" />
                   {item.label}
+                  {item.view === "plan" && (
+                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary pulse-dot" />
+                  )}
                 </button>
               </li>
             );
           })}
         </ul>
 
-        {/* Secondary nav: Timeline + Weekly Review */}
+        {/* Secondary nav */}
         <div className="mt-6 pt-4 border-t border-sidebar-border">
           <div className="px-3 mb-2 text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
             Your journey
@@ -175,7 +181,29 @@ export function SidebarNav() {
                 Plan Lab
               </button>
             </li>
+            {recovery?.active && (
+              <li>
+                <button
+                  onClick={() => setView("recovery")}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    view === "recovery"
+                      ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent"
+                  )}
+                >
+                  <Heart className="h-[18px] w-[18px]" />
+                  Recovery
+                  <span className="ml-auto h-2 w-2 rounded-full bg-amber-500 pulse-dot" />
+                </button>
+              </li>
+            )}
           </ul>
+        </div>
+
+        {/* Coach mode indicator */}
+        <div className="mt-6 pt-4 border-t border-sidebar-border px-1">
+          <CoachModeSwitcher compact />
         </div>
       </nav>
 

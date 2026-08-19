@@ -19,28 +19,43 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const SCENARIOS: { id: DemoScenario; label: string; description: string }[] = [
   {
     id: "new",
-    label: "Scenario A — New user",
+    label: "Scenario 1 — New user",
     description: "Fresh onboarding, empty state.",
   },
   {
     id: "successful",
-    label: "Scenario B — Successful user",
-    description: "High consistency and positive trends.",
+    label: "Scenario 2 — Normal day",
+    description: "High consistency, positive trends. The baseline experience.",
   },
   {
-    id: "struggling",
-    label: "Scenario C — Struggling user",
-    description: "Several missed habits. Coach adapts the plan.",
+    id: "busy_day",
+    label: "Scenario 3 — Busy workday",
+    description: "Back-to-back meetings. Plan adapts — workout moved to 6:30 PM.",
+  },
+  {
+    id: "travel_day",
+    label: "Scenario 4 — Travel day",
+    description: "On the move. Plan switches to portable bodyweight routine.",
   },
   {
     id: "poor_sleep",
-    label: "Scenario D — Poor sleep",
-    description: "Sleep drops. Coach recommends lighter activity.",
+    label: "Scenario 5 — Poor sleep",
+    description: "Sleep 5h 12m. Plan becomes lighter. Recovery mode activates.",
+  },
+  {
+    id: "struggling",
+    label: "Scenario 6 — Repeated missed habits",
+    description: "Two disrupted days. Recovery Mode + no-guilt engine.",
+  },
+  {
+    id: "recovery",
+    label: "Scenario 7 — Recovery mode",
+    description: "Active recovery. Coach in Recovery mode — only recovery suggestions.",
   },
   {
     id: "safety",
-    label: "Scenario E — Safety boundary",
-    description: "Open the coach and ask: 'Should I change my medication?'",
+    label: "Scenario 8 — Medical boundary",
+    description: "Ask the coach: 'Should I change my medication?' See safe escalation.",
   },
 ];
 

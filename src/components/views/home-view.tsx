@@ -15,11 +15,24 @@ import {
   CheckCircle2,
   X,
   Info,
+  Heart,
+  Calendar,
+  Sun,
+  Coffee,
+  Sunset,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { getNextBestAction } from "@/lib/coach-engine";
+import {
+  generateRecommendation,
+  assessLifeContext,
+  assessHealthSignals,
+  assessBehaviorHistory,
+  getFrictionQuestion,
+} from "@/lib/adaptation-engine";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -31,8 +44,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { WhySheet, TrustPanel } from "@/components/why-sheet";
+import { CoachModeSwitcher } from "@/components/coach-mode-switcher";
 import { cn } from "@/lib/utils";
-import type { Habit } from "@/lib/types";
+import type { Habit, LifeContextType } from "@/lib/types";
 import {
   StaggerGroup,
   StaggerItem,
@@ -43,6 +58,7 @@ import {
   Tactile,
   MOTION,
 } from "@/lib/motion";
+import { toast } from "sonner";
 
 export function HomeView() {
   const profile = useAppStore((s) => s.profile);
@@ -50,10 +66,22 @@ export function HomeView() {
   const habits = useAppStore((s) => s.habits);
   const timeline = useAppStore((s) => s.timeline);
   const weeklyReview = useAppStore((s) => s.weeklyReview);
+  const lifeContexts = useAppStore((s) => s.lifeContexts);
+  const todayPlan = useAppStore((s) => s.todayPlan);
+  const recovery = useAppStore((s) => s.recovery);
+  const coachMode = useAppStore((s) => s.coachMode);
+  const pendingAdaptation = useAppStore((s) => s.pendingAdaptation);
+  const proactiveMessages = useAppStore((s) => s.proactiveMessages);
   const toggleHabitToday = useAppStore((s) => s.toggleHabitToday);
   const setView = useAppStore((s) => s.setView);
+  const addLifeContext = useAppStore((s) => s.addLifeContext);
+  const acceptPlanAdaptation = useAppStore((s) => s.acceptPlanAdaptation);
+  const rejectPlanAdaptation = useAppStore((s) => s.rejectPlanAdaptation);
+  const dismissProactiveMessage = useAppStore((s) => s.dismissProactiveMessage);
+  const track = useAppStore((s) => s.track);
 
   const [balanceOpen, setBalanceOpen] = useState(false);
+  const [whyOpen, setWhyOpen] = useState(false);
   const [celebrateHabit, setCelebrateHabit] = useState<string | null>(null);
 
   if (!profile) return null;
@@ -62,12 +90,24 @@ export function HomeView() {
   const greeting = getGreeting();
   const firstName = profile.name.split(" ")[0];
 
+  // Use the new adaptation engine for the recommendation
+  const recommendation = generateRecommendation(useAppStore.getState());
+  const life = assessLifeContext(useAppStore.getState());
+  const health = assessHealthSignals(useAppStore.getState());
+  const behavior = assessBehaviorHistory(useAppStore.getState());
+  const frictionQuestion = getFrictionQuestion(useAppStore.getState());
+
   const nextAction = getNextBestAction(useAppStore.getState());
 
   const dailyBalance = computeDailyBalance(today, habits);
   const balanceBreakdown = computeBalanceBreakdown(today, habits);
   const momentum = computeWeeklyMomentum(habits);
   const streak = Math.max(0, ...habits.map((h) => h.currentStreak));
+
+  // Filter proactive messages based on coach mode
+  const visibleMessages = proactiveMessages.filter(
+    (m) => !m.dismissed && m.shouldSpeak && (coachMode === "active" || m.priority === "high")
+  );
 
   const handleToggleHabit = (habitId: string) => {
     const habit = habits.find((h) => h.id === habitId);
@@ -79,6 +119,14 @@ export function HomeView() {
     }
   };
 
+  const handleAddContext = (type: LifeContextType, label: string) => {
+    addLifeContext(type, label);
+    toast.success(`Plan adapted for: ${label}`);
+  };
+
+  const completedPlanItems = todayPlan.filter((p) => p.completed).length;
+  const totalPlanItems = todayPlan.length;
+
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8">
       {/* Greeting */}
@@ -88,12 +136,16 @@ export function HomeView() {
             <span>{greeting}</span>
             <span>·</span>
             <span>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</span>
+            <span>·</span>
+            <span className="capitalize text-primary font-medium">{life.contextSummary}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
             {greeting}, {firstName}.
           </h1>
           <p className="mt-1 text-muted-foreground text-pretty">
-            {today && today.sleepHours < 6
+            {recovery?.active
+              ? "You're in Recovery Mode. Today is about showing up gently, not catching up."
+              : today && today.sleepHours < 6
               ? "Your sleep was shorter than usual. Today's plan is gentler — small actions still count."
               : today && today.stressLevel >= 65
               ? "Your stress looks elevated. A 5-minute reset can shift the rest of your day."
@@ -104,10 +156,138 @@ export function HomeView() {
         </div>
       </FadeIn>
 
+      {/* Recovery banner */}
+      <AnimatePresence>
+        {recovery?.active && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: MOTION.duration.standard, ease: MOTION.easing.out }}
+          >
+            <Card className="p-4 mb-4 card-premium bg-gradient-to-br from-amber-500/10 to-background border-amber-500/30">
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0">
+                  <Heart className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-xs uppercase tracking-wide font-semibold text-amber-700 dark:text-amber-400 mb-0.5">
+                    Recovery Mode · {recovery.triggerLabel}
+                  </div>
+                  <div className="text-sm font-medium">Today got disrupted. Let&apos;s adjust.</div>
+                  <p className="text-xs text-muted-foreground mt-1 text-pretty">
+                    Your progress is not reset. Recovery consistency: {Math.round(recovery.recoveryConsistency * 100)}%
+                  </p>
+                  <Button size="sm" variant="outline" className="mt-2" onClick={() => setView("recovery")}>
+                    View recovery plan
+                    <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Plan adaptation banner */}
+      <AnimatePresence>
+        {pendingAdaptation && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: MOTION.duration.standard, ease: MOTION.easing.out }}
+          >
+            <Card className="p-4 mb-4 card-premium bg-gradient-to-br from-primary/10 to-background border-primary/30 border-beam">
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shrink-0">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs uppercase tracking-wide font-semibold text-primary mb-0.5">
+                    Plan adapted · {pendingAdaptation.triggerLabel}
+                  </div>
+                  <ul className="space-y-1 mt-2">
+                    {pendingAdaptation.changes.slice(0, 2).map((change, i) => (
+                      <motion.li
+                        key={i}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.08 }}
+                        className="text-sm flex items-start gap-2"
+                      >
+                        <span className="text-primary mt-0.5">→</span>
+                        <span className="text-pretty">
+                          <strong>{change.what}</strong>
+                        </span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" onClick={acceptPlanAdaptation} className="shadow-premium-sm">
+                      Accept
+                      <ArrowRight className="h-3 w-3 ml-1" />
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={rejectPlanAdaptation}>
+                      Use normal plan
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setView("today_plan")}>
+                      View plan
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Friction Autopilot — smart question instead of asking user to log */}
+      <AnimatePresence>
+        {frictionQuestion && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: MOTION.duration.standard, ease: MOTION.easing.out }}
+          >
+            <Card className="p-4 mb-4 card-premium bg-muted/40">
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Info className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium">{frictionQuestion.question}</div>
+                  <p className="text-xs text-muted-foreground mt-0.5 text-pretty">{frictionQuestion.reason}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {frictionQuestion.options.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => {
+                          if (opt.value === "busy") {
+                            handleAddContext("busy", "Busy day");
+                          } else if (opt.value === "skip") {
+                            toast.success("Okay — I'll keep today light.");
+                          }
+                          track("friction_autopilot_event", { question: frictionQuestion.id, answer: opt.value });
+                        }}
+                        className="text-xs px-2.5 py-1 rounded-full bg-background border border-border hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Daily Balance + Next best action */}
       <StaggerGroup className="grid sm:grid-cols-5 gap-4 mb-6" stagger={MOTION.stagger.standard}>
         <StaggerItem className="sm:col-span-2">
-          <Card className="p-5 h-full card-premium flex flex-col justify-between cursor-pointer" >
+          <Card className="p-5 h-full card-premium flex flex-col justify-between cursor-pointer">
             <button onClick={() => setBalanceOpen(true)} className="text-left">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
@@ -124,7 +304,7 @@ export function HomeView() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                A holistic indicator across movement, sleep, nutrition, and stress.
+                A holistic indicator across movement, sleep, habits, and recovery.
                 <span className="text-muted-foreground/70"> Not a medical score.</span>
               </p>
             </button>
@@ -139,9 +319,173 @@ export function HomeView() {
         </StaggerItem>
 
         <StaggerItem className="sm:col-span-3">
-          <NextBestActionCard nextAction={nextAction} />
+          <Card className="p-5 h-full card-premium bg-gradient-to-br from-primary/8 to-background border-beam relative overflow-hidden">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-xs uppercase tracking-wide font-medium text-muted-foreground">
+                What matters today
+              </span>
+            </div>
+            <p className="text-base font-medium leading-snug text-pretty">
+              {recommendation.title}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1 text-pretty">
+              {recommendation.body}
+            </p>
+            <div className="mt-4 flex items-center gap-2">
+              <Tactile>
+                <Button size="sm" onClick={() => setWhyOpen(true)} className="shadow-premium-sm">
+                  Why this?
+                  <ArrowRight className="h-3 w-3 ml-1" />
+                </Button>
+              </Tactile>
+              <button
+                onClick={() => setView("today_plan")}
+                className="text-xs text-muted-foreground hover:text-foreground px-2"
+              >
+                View today&apos;s plan
+              </button>
+            </div>
+            <div className="mt-3">
+              <TrustPanel recommendation={recommendation} compact />
+            </div>
+          </Card>
         </StaggerItem>
       </StaggerGroup>
+
+      {/* Quick context chips — Friction Autopilot */}
+      <FadeIn delay={0.1}>
+        <Card className="p-4 mb-6 card-premium">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">
+                What does today look like?
+              </span>
+            </div>
+            <button
+              onClick={() => setView("life_context")}
+              className="text-xs text-primary font-medium hover:underline"
+            >
+              More →
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { type: "busy" as LifeContextType, label: "Busy day" },
+              { type: "travel" as LifeContextType, label: "Travelling" },
+              { type: "low_energy" as LifeContextType, label: "Low energy" },
+              { type: "high_stress" as LifeContextType, label: "High stress" },
+              { type: "more_time" as LifeContextType, label: "More free time" },
+              { type: "social" as LifeContextType, label: "Social event" },
+            ].map((chip) => {
+              const active = lifeContexts.some((c) => c.type === chip.type);
+              return (
+                <button
+                  key={chip.type}
+                  onClick={() => handleAddContext(chip.type, chip.label)}
+                  className={cn(
+                    "text-xs px-3 py-1.5 rounded-full border font-medium transition-all",
+                    active
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border hover:border-primary/40 hover:bg-primary/5"
+                  )}
+                >
+                  {active && "✓ "}
+                  {chip.label}
+                </button>
+              );
+            })}
+          </div>
+          {lifeContexts.length > 0 && (
+            <div className="mt-2 text-[11px] text-muted-foreground">
+              Active: {lifeContexts.map((c) => c.label).join(", ")}
+            </div>
+          )}
+        </Card>
+      </FadeIn>
+
+      {/* Today's plan preview */}
+      <FadeIn delay={0.15}>
+        <Card className="p-5 mb-6 card-premium">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              <span className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">
+                Today&apos;s plan
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {completedPlanItems}/{totalPlanItems} complete
+            </div>
+          </div>
+          <div className="space-y-2">
+            {todayPlan.slice(0, 3).map((item) => (
+              <div key={item.id} className="flex items-center gap-3 text-sm">
+                <div className="text-[11px] text-muted-foreground tabular-nums w-12 shrink-0">
+                  {formatTime(item.time)}
+                </div>
+                <div className={cn(
+                  "h-2 w-2 rounded-full shrink-0",
+                  item.completed ? "bg-primary" : item.skipped ? "bg-muted-foreground/30" : "bg-muted-foreground/40"
+                )} />
+                <div className={cn("flex-1 truncate", item.completed && "text-muted-foreground line-through")}>
+                  {item.title}
+                </div>
+                {item.adapted && (
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                    Adapted
+                  </Badge>
+                )}
+                <span className="text-[11px] text-muted-foreground">{item.durationMin}m</span>
+              </div>
+            ))}
+          </div>
+          <Button variant="ghost" size="sm" className="mt-3 w-full" onClick={() => setView("today_plan")}>
+            View full plan
+            <ChevronRight className="h-3.5 w-3.5 ml-1" />
+          </Button>
+        </Card>
+      </FadeIn>
+
+      {/* Proactive messages (respecting coach mode) */}
+      {visibleMessages.length > 0 && (
+        <FadeIn delay={0.2}>
+          <section className="mb-6 space-y-2">
+            {visibleMessages.slice(0, 2).map((msg) => (
+              <Card key={msg.id} className="p-4 card-premium bg-gradient-to-br from-primary/8 to-background">
+                <div className="flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shrink-0">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-xs uppercase tracking-wide font-semibold text-primary">
+                        {msg.title}
+                      </span>
+                      <Badge variant="outline" className="text-[10px] capitalize">
+                        {msg.priority}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-pretty">{msg.body}</p>
+                    <div className="text-[11px] text-muted-foreground mt-1 italic">
+                      Why: {msg.reason}
+                    </div>
+                    <div className="mt-2 flex gap-1.5">
+                      <Button size="sm" variant="outline" onClick={() => setView("today_plan")}>
+                        {msg.action}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => dismissProactiveMessage(msg.id)}>
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </section>
+        </FadeIn>
+      )}
 
       {/* Habit cards */}
       <section className="mb-6">
@@ -178,7 +522,7 @@ export function HomeView() {
         </Card>
       </section>
 
-      {/* Coach insight */}
+      {/* Coach insight + Coach mode */}
       <FadeIn delay={0.1}>
         <section className="mb-6">
           <Card className="p-5 card-premium bg-gradient-to-br from-primary/10 to-background border-beam">
@@ -205,33 +549,12 @@ export function HomeView() {
         </section>
       </FadeIn>
 
-      {/* Weekly Review card */}
-      {weeklyReview && (
-        <FadeIn delay={0.15}>
-          <section className="mb-6">
-            <Card className="p-5 card-premium">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="text-xs uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                    Your week in review
-                  </div>
-                  <div className="font-semibold text-lg">You showed up {weeklyReview.daysShownUp} days this week</div>
-                </div>
-                <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
-                  {Math.round(weeklyReview.actualCompletion * 100)}%
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground italic border-l-2 border-primary/40 pl-3 text-pretty">
-                {weeklyReview.coachNote}
-              </p>
-              <Button variant="outline" size="sm" className="mt-3" onClick={() => setView("weekly_review")}>
-                Build next week&apos;s plan
-                <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-              </Button>
-            </Card>
-          </section>
-        </FadeIn>
-      )}
+      {/* Coach mode switcher */}
+      <FadeIn delay={0.15}>
+        <section className="mb-6">
+          <CoachModeSwitcher />
+        </section>
+      </FadeIn>
 
       {/* Weekly momentum + Timeline preview */}
       <section className="grid sm:grid-cols-2 gap-4">
@@ -311,6 +634,27 @@ export function HomeView() {
         breakdown={balanceBreakdown}
       />
 
+      {/* Why Sheet — the "Why?" Health Interpreter */}
+      <WhySheet
+        open={whyOpen}
+        onOpenChange={setWhyOpen}
+        recommendation={recommendation}
+        onAccept={() => {
+          toast.success("Recommendation accepted.");
+          setWhyOpen(false);
+          track("recommendation_accepted", { id: recommendation.id });
+        }}
+        onReject={() => {
+          setWhyOpen(false);
+          track("recommendation_rejected", { id: recommendation.id });
+        }}
+        onAlternative={() => {
+          toast.success("Okay — let's try the alternative.");
+          setWhyOpen(false);
+          track("recommendation_accepted", { id: recommendation.id, alternative: true });
+        }}
+      />
+
       {/* Activity session modal */}
       <ActivitySession />
     </div>
@@ -321,66 +665,6 @@ export function HomeView() {
 // Next Best Action card with activity state
 // ============================================================
 
-function NextBestActionCard({ nextAction }: { nextAction: ReturnType<typeof getNextBestAction> }) {
-  const startActivity = useAppStore((s) => s.startActivity);
-  const setView = useAppStore((s) => s.setView);
-  const activeActivity = useAppStore((s) => s.activeActivity);
-  const habits = useAppStore((s) => s.habits);
-
-  if (activeActivity) return null; // ActivitySession modal takes over
-
-  const handleStart = () => {
-    if (nextAction.action === "start_walk") {
-      const walkHabit = habits.find((h) => h.id === "walk-20") ?? habits[0];
-      if (walkHabit) {
-        const today = useAppStore.getState().metrics.slice(-1)[0];
-        const stepsRemaining = today ? Math.max(0, today.stepsGoal - today.steps) : 1500;
-        const minutes = Math.max(10, Math.round(stepsRemaining / 130));
-        startActivity(walkHabit.id, walkHabit.title, minutes);
-      }
-    } else if (nextAction.action === "adjust_plan" || nextAction.action === "schedule_habit") {
-      setView("plan_lab");
-    } else {
-      setView("coach");
-    }
-  };
-
-  return (
-    <Card className="p-5 h-full card-premium bg-gradient-to-br from-primary/8 to-background border-beam relative overflow-hidden">
-      <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <span className="text-xs uppercase tracking-wide font-medium text-muted-foreground">
-          {nextAction.title}
-        </span>
-      </div>
-      <p className="text-base font-medium leading-snug text-pretty">
-        {nextAction.body}
-      </p>
-      <div className="mt-4 flex items-center gap-2">
-        <Tactile>
-          <Button size="sm" onClick={handleStart} className="shadow-premium-sm">
-            {nextAction.action === "start_walk" ? "Start walk" : nextAction.action === "adjust_plan" ? "Adjust plan" : nextAction.action === "schedule_habit" ? "Reschedule" : nextAction.action === "tell_me_more" ? "Tell me more" : "Ask coach"}
-            <ArrowRight className="h-3 w-3 ml-1" />
-          </Button>
-        </Tactile>
-        <button
-          onClick={() => setView("coach")}
-          className="text-xs text-muted-foreground hover:text-foreground px-2"
-        >
-          Why this?
-        </button>
-      </div>
-      <div className="mt-3 text-[11px] text-muted-foreground/80 leading-snug border-l-2 border-primary/30 pl-2">
-        {nextAction.reason}
-      </div>
-    </Card>
-  );
-}
-
-// ============================================================
-// Activity session modal — interactive Next Best Action
-// ============================================================
-
 function ActivitySession() {
   const activeActivity = useAppStore((s) => s.activeActivity);
   const tickActivity = useAppStore((s) => s.tickActivity);
@@ -388,7 +672,6 @@ function ActivitySession() {
   const cancelActivity = useAppStore((s) => s.cancelActivity);
   const [autoTick, setAutoTick] = useState(false);
 
-  // Auto-advance progress every 2 seconds (simulating real elapsed time at 30x speed)
   useEffect(() => {
     if (!activeActivity || activeActivity.completed) return;
     if (!autoTick) return;
@@ -421,12 +704,7 @@ function ActivitySession() {
             transition={{ duration: MOTION.duration.standard, ease: MOTION.easing.spring }}
             className="relative inline-flex mb-4"
           >
-            <ProgressRing
-              value={pct}
-              size={120}
-              strokeWidth={8}
-              showLabel={false}
-            />
+            <ProgressRing value={pct} size={120} strokeWidth={8} showLabel={false} />
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               {activeActivity.completed ? (
                 <CheckCircle2 className="h-10 w-10 text-primary" />
@@ -445,13 +723,7 @@ function ActivitySession() {
 
           <AnimatePresence mode="wait">
             {activeActivity.completed ? (
-              <motion.div
-                key="done"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: MOTION.duration.standard }}
-              >
+              <motion.div key="done" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="relative">
                   <ConfettiBurst trigger={true} />
                   <h2 className="text-2xl font-semibold tracking-tight">Nice work.</h2>
@@ -465,12 +737,7 @@ function ActivitySession() {
                 </Button>
               </motion.div>
             ) : (
-              <motion.div
-                key="active"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-              >
+              <motion.div key="active" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <h2 className="text-xl font-semibold tracking-tight">{activeActivity.title}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {activeActivity.durationMinutes}-minute session · {pct}% complete
@@ -491,9 +758,6 @@ function ActivitySession() {
                     Skip to end
                   </Button>
                 </div>
-                <p className="mt-4 text-[11px] text-muted-foreground">
-                  Auto-advances every 1.5s for demo. In production this would be a real timer.
-                </p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -507,12 +771,7 @@ function ActivitySession() {
 // Daily Balance breakdown dialog
 // ============================================================
 
-function DailyBalanceDialog({
-  open,
-  onOpenChange,
-  total,
-  breakdown,
-}: {
+function DailyBalanceDialog({ open, onOpenChange, total, breakdown }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   total: number;
@@ -564,18 +823,8 @@ function DailyBalanceDialog({
 // Sub-components
 // ============================================================
 
-function HabitMiniCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  progress,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  sub: string;
-  progress: number;
+function HabitMiniCard({ icon: Icon, label, value, sub, progress }: {
+  icon: LucideIcon; label: string; value: string; sub: string; progress: number;
 }) {
   return (
     <Card className="p-4 card-premium card-premium-hover">
@@ -595,56 +844,49 @@ function HabitMiniCard({
 function HabitRow({ habit, onToggle, celebrate }: { habit: Habit; onToggle: () => void; celebrate: boolean }) {
   const completed = habit.history[habit.history.length - 1];
   return (
-    <div className="relative">
-      <Tactile>
-        <button
-          onClick={onToggle}
-          className="w-full flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors text-left"
-        >
-          <div className="relative">
-            <motion.div
-              className={cn(
-                "h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
-                completed ? "bg-primary border-primary text-primary-foreground" : "border-border"
+    <Tactile>
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 p-4 hover:bg-muted/40 transition-colors text-left"
+      >
+        <div className="relative">
+          <motion.div
+            className={cn(
+              "h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+              completed ? "bg-primary border-primary text-primary-foreground" : "border-border"
+            )}
+            animate={completed ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+            transition={{ duration: 0.4, ease: MOTION.easing.spring }}
+          >
+            <AnimatePresence>
+              {completed && (
+                <motion.svg
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}
+                  strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3"
+                >
+                  <motion.path d="M20 6L9 17l-5-5" />
+                </motion.svg>
               )}
-              animate={completed ? { scale: [1, 1.15, 1] } : { scale: 1 }}
-              transition={{ duration: 0.4, ease: MOTION.easing.spring }}
-            >
-              <AnimatePresence>
-                {completed && (
-                  <motion.svg
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 1 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={3}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-3 w-3"
-                  >
-                    <motion.path d="M20 6L9 17l-5-5" />
-                  </motion.svg>
-                )}
-              </AnimatePresence>
-            </motion.div>
-            {celebrate && <ConfettiBurst trigger={celebrate} />}
+            </AnimatePresence>
+          </motion.div>
+          {celebrate && <ConfettiBurst trigger={celebrate} />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={cn("text-sm font-medium", completed && "text-muted-foreground line-through")}>
+            {habit.title}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className={cn("text-sm font-medium", completed && "text-muted-foreground line-through")}>
-              {habit.title}
-            </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {habit.scheduledTime} · {habit.currentStreak}-day streak
-            </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            {habit.scheduledTime} · {habit.currentStreak}-day streak
           </div>
-          <Badge variant="outline" className="text-[10px]">
-            {habit.completedThisWeek}/{habit.targetPerWeek}
-          </Badge>
-        </button>
-      </Tactile>
-    </div>
+        </div>
+        <Badge variant="outline" className="text-[10px]">
+          {habit.completedThisWeek}/{habit.targetPerWeek}
+        </Badge>
+      </button>
+    </Tactile>
   );
 }
 
@@ -661,10 +903,7 @@ function getGreeting(): string {
   return "Winding down";
 }
 
-function computeDailyBalance(
-  today: { steps: number; stepsGoal: number; sleepHours: number; sleepGoalHours: number; hydrationGlasses: number; hydrationGoal: number; stressLevel: number } | undefined,
-  habits: Habit[]
-): number {
+function computeDailyBalance(today: { steps: number; stepsGoal: number; sleepHours: number; sleepGoalHours: number; hydrationGlasses: number; hydrationGoal: number; stressLevel: number } | undefined, habits: Habit[]): number {
   if (!today) return 50;
   const stepScore = Math.min(1, today.steps / today.stepsGoal) * 25;
   const sleepScore = Math.min(1, today.sleepHours / today.sleepGoalHours) * 25;
@@ -677,38 +916,15 @@ function computeDailyBalance(
   return Math.max(0, Math.min(100, Math.round(total + 30)));
 }
 
-function computeBalanceBreakdown(
-  today: { steps: number; stepsGoal: number; sleepHours: number; sleepGoalHours: number; hydrationGlasses: number; hydrationGoal: number; stressLevel: number; stressResetsCompleted: number } | undefined,
-  habits: Habit[]
-): { label: string; value: number; icon: LucideIcon; reason: string }[] {
+function computeBalanceBreakdown(today: { steps: number; stepsGoal: number; sleepHours: number; sleepGoalHours: number; hydrationGlasses: number; hydrationGoal: number; stressLevel: number; stressResetsCompleted: number } | undefined, habits: Habit[]): { label: string; value: number; icon: LucideIcon; reason: string }[] {
   if (!today) return [];
   const activeHabits = habits.filter((h) => !h.paused);
   const habitDone = activeHabits.filter((h) => h.history[h.history.length - 1]).length;
   return [
-    {
-      label: "Movement",
-      value: Math.round(Math.min(25, (today.steps / today.stepsGoal) * 25)),
-      icon: Footprints,
-      reason: `${formatSteps(today.steps)} of ${formatSteps(today.stepsGoal)} steps`,
-    },
-    {
-      label: "Sleep",
-      value: Math.round(Math.min(25, (today.sleepHours / today.sleepGoalHours) * 25)),
-      icon: Moon,
-      reason: `${Math.floor(today.sleepHours)}h ${Math.round((today.sleepHours % 1) * 60)}m of ${today.sleepGoalHours}h`,
-    },
-    {
-      label: "Habits",
-      value: Math.round((activeHabits.length ? habitDone / activeHabits.length : 0) * 20),
-      icon: CheckCircle2,
-      reason: `${habitDone} of ${activeHabits.length} completed today`,
-    },
-    {
-      label: "Recovery",
-      value: Math.round(Math.max(0, 20 - Math.max(0, (today.stressLevel - 50) / 100) * 20 + today.stressResetsCompleted * 5)),
-      icon: Brain,
-      reason: `Stress ${today.stressLevel}/100 · ${today.stressResetsCompleted} reset today`,
-    },
+    { label: "Movement", value: Math.round(Math.min(25, (today.steps / today.stepsGoal) * 25)), icon: Footprints, reason: `${formatSteps(today.steps)} of ${formatSteps(today.stepsGoal)} steps` },
+    { label: "Sleep", value: Math.round(Math.min(25, (today.sleepHours / today.sleepGoalHours) * 25)), icon: Moon, reason: `${Math.floor(today.sleepHours)}h ${Math.round((today.sleepHours % 1) * 60)}m of ${today.sleepGoalHours}h` },
+    { label: "Habits", value: Math.round((activeHabits.length ? habitDone / activeHabits.length : 0) * 20), icon: CheckCircle2, reason: `${habitDone} of ${activeHabits.length} completed today` },
+    { label: "Recovery", value: Math.round(Math.max(0, 20 - Math.max(0, (today.stressLevel - 50) / 100) * 20 + today.stressResetsCompleted * 5)), icon: Brain, reason: `Stress ${today.stressLevel}/100 · ${today.stressResetsCompleted} reset today` },
   ];
 }
 
@@ -722,6 +938,13 @@ function computeWeeklyMomentum(habits: Habit[]): number {
 
 function formatSteps(n: number): string {
   return n.toLocaleString("en-US");
+}
+
+function formatTime(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
 }
 
 function buildCoachInsight(habits: Habit[], today: { sleepHours: number; steps: number } | undefined) {

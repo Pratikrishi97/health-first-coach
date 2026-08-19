@@ -10,7 +10,24 @@ import type {
   UserProfile,
   WeeklyReview,
   DemoScenario,
+  CalendarEvent,
+  LifeContext,
+  PlanItem,
+  PlanAdaptation,
+  RecoveryState,
+  Recommendation,
+  HealthPattern,
+  ProactiveMessage,
+  CoachMode,
+  PlanHierarchy,
+  PlanningInsight,
+  QuarterlyGoal,
+  MonthlyMilestone,
+  WeeklyPlan,
+  WeeklyDayPlan,
+  Goal,
 } from "./types";
+import { buildPlanHierarchy, buildPlanningInsights } from "./planning-engine";
 
 // ============================================================
 // Demo data for the primary persona — Raj Sharma
@@ -538,7 +555,418 @@ export function buildDemoWeeklyReview(scenario: DemoScenario): WeeklyReview {
   };
 }
 
+export function buildDemoCalendar(scenario: DemoScenario): CalendarEvent[] {
+  // Simulated calendar context — clearly labeled
+  const base: CalendarEvent[] = [
+    { id: "c1", time: "08:30", endTime: "10:00", title: "Morning standup", category: "meeting", durationMin: 90, simulated: true },
+    { id: "c2", time: "10:00", endTime: "11:30", title: "Focus block", category: "focus", durationMin: 90, simulated: true },
+    { id: "c3", time: "11:30", endTime: "12:30", title: "Lunch", category: "lunch", durationMin: 60, simulated: true },
+    { id: "c4", time: "14:00", endTime: "15:30", title: "Client call", category: "meeting", durationMin: 90, simulated: true },
+    { id: "c5", time: "16:00", endTime: "17:30", title: "Team sync", category: "meeting", durationMin: 90, simulated: true },
+    { id: "c6", time: "18:30", endTime: "20:00", title: "Free", category: "free", durationMin: 90, simulated: true },
+    { id: "c7", time: "20:00", endTime: "21:00", title: "Dinner", category: "dinner", durationMin: 60, simulated: true },
+  ];
+
+  if (scenario === "busy_day") {
+    // Replace free block with another meeting
+    base[5] = { id: "c6", time: "17:30", endTime: "19:00", title: "Late meeting", category: "meeting", durationMin: 90, simulated: true };
+    base.push({ id: "c8", time: "19:00", endTime: "19:30", title: "Free", category: "free", durationMin: 30, simulated: true });
+  }
+
+  if (scenario === "travel_day") {
+    return [
+      { id: "c1", time: "07:00", endTime: "09:00", title: "Flight", category: "travel", durationMin: 120, simulated: true },
+      { id: "c2", time: "12:00", endTime: "13:00", title: "Lunch", category: "lunch", durationMin: 60, simulated: true },
+      { id: "c3", time: "14:00", endTime: "18:00", title: "Client visits", category: "meeting", durationMin: 240, simulated: true },
+      { id: "c4", time: "19:00", endTime: "20:00", title: "Dinner", category: "dinner", durationMin: 60, simulated: true },
+    ];
+  }
+
+  return base;
+}
+
+export function buildDemoLifeContexts(scenario: DemoScenario): LifeContext[] {
+  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date().toISOString();
+
+  const contexts: LifeContext[] = [];
+
+  if (scenario === "busy_day") {
+    contexts.push({
+      id: "lc-busy",
+      type: "busy",
+      label: "Busy day",
+      date: today,
+      addedAt: now,
+    });
+  }
+  if (scenario === "travel_day") {
+    contexts.push({
+      id: "lc-travel",
+      type: "travel",
+      label: "Travelling",
+      date: today,
+      addedAt: now,
+    });
+  }
+  if (scenario === "poor_sleep") {
+    contexts.push({
+      id: "lc-low-energy",
+      type: "low_energy",
+      label: "Low energy",
+      date: today,
+      addedAt: now,
+    });
+  }
+  if (scenario === "struggling" || scenario === "recovery") {
+    contexts.push({
+      id: "lc-stress",
+      type: "high_stress",
+      label: "High stress",
+      date: today,
+      addedAt: now,
+    });
+  }
+
+  return contexts;
+}
+
+export function buildDemoTodayPlan(scenario: DemoScenario): { plan: PlanItem[]; adaptation: PlanAdaptation | null } {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const basePlan: PlanItem[] = [
+    {
+      id: "pi-morning",
+      time: "07:00",
+      period: "morning",
+      title: "5-minute mobility",
+      description: "Gentle stretch sequence to start the day.",
+      category: "movement",
+      durationMin: 5,
+      completed: false,
+      skipped: false,
+      adapted: false,
+    },
+    {
+      id: "pi-lunch",
+      time: "12:30",
+      period: "lunch",
+      title: "20-minute walk",
+      description: "After lunch, before the afternoon slump.",
+      category: "movement",
+      durationMin: 20,
+      completed: false,
+      skipped: false,
+      adapted: false,
+    },
+    {
+      id: "pi-evening",
+      time: "18:30",
+      period: "evening",
+      title: "30-minute workout",
+      description: "Strength or cardio session.",
+      category: "movement",
+      durationMin: 30,
+      completed: false,
+      skipped: false,
+      adapted: false,
+    },
+    {
+      id: "pi-reset",
+      time: "21:00",
+      period: "evening",
+      title: "5-minute stress reset",
+      description: "Box breathing before wind-down.",
+      category: "stress",
+      durationMin: 5,
+      completed: false,
+      skipped: false,
+      adapted: false,
+    },
+  ];
+
+  // Successful scenario: mark some as completed
+  if (scenario === "successful") {
+    basePlan[0].completed = true;
+    basePlan[1].completed = true;
+  }
+
+  // Apply adaptations per scenario
+  let adaptation: PlanAdaptation | null = null;
+
+  if (scenario === "poor_sleep") {
+    basePlan[2] = {
+      ...basePlan[2],
+      title: "15-minute walk",
+      durationMin: 15,
+      adapted: true,
+      originalTitle: "30-minute workout",
+      originalDurationMin: 30,
+      adaptationReason: "Sleep 5h 12m below 7h baseline",
+    };
+    basePlan[0] = {
+      ...basePlan[0],
+      title: "10-minute mobility",
+      durationMin: 10,
+      adapted: true,
+      originalTitle: "5-minute mobility",
+      originalDurationMin: 5,
+      adaptationReason: "Lower-intensity movement on poor-sleep day",
+    };
+    adaptation = {
+      id: "adapt-poor-sleep",
+      date: today,
+      trigger: "low_sleep",
+      triggerLabel: "Sleep 5h 12m + busy day",
+      changes: [
+        { what: "Reduced workout from 30 min to 15-min walk", why: "Sleep 5h 12m below 7h baseline", action: "15-minute walk" },
+        { what: "Added 10-min mobility in the morning", why: "Lower-intensity movement on poor-sleep days", action: "10-minute mobility" },
+        { what: "Earlier wind-down tonight", why: "Recovery starts the night before", action: "10:30 PM wind-down" },
+      ],
+    };
+  }
+
+  if (scenario === "busy_day") {
+    basePlan[2] = {
+      ...basePlan[2],
+      time: "18:30",
+      title: "20-minute workout",
+      durationMin: 20,
+      adapted: true,
+      originalTitle: "30-minute workout (5:30 PM)",
+      originalDurationMin: 30,
+      adaptationReason: "Moved from 5:30 PM due to late meeting",
+    };
+    adaptation = {
+      id: "adapt-busy",
+      date: today,
+      trigger: "busy_day",
+      triggerLabel: "Busy day / late meeting",
+      changes: [
+        { what: "Moved workout from 5:30 PM to 6:30 PM", why: "Your usual workout time conflicts with a late meeting", action: "6:30 PM workout" },
+        { what: "Shortened to 20 minutes", why: "Fits the available window", action: "20-minute workout" },
+        { what: "Kept 15-min lunch walk", why: "Short walks fit between meetings", action: "15-minute walk" },
+      ],
+    };
+  }
+
+  if (scenario === "travel_day") {
+    basePlan[2] = {
+      ...basePlan[2],
+      title: "10-minute bodyweight",
+      durationMin: 10,
+      adapted: true,
+      originalTitle: "30-minute workout",
+      originalDurationMin: 30,
+      adaptationReason: "Travel day — portable movement",
+    };
+    basePlan[1] = {
+      ...basePlan[1],
+      title: "10-minute walk",
+      durationMin: 10,
+      adapted: true,
+      originalTitle: "20-minute walk",
+      originalDurationMin: 20,
+      adaptationReason: "Shorter for travel flexibility",
+    };
+    adaptation = {
+      id: "adapt-travel",
+      date: today,
+      trigger: "travel",
+      triggerLabel: "Travel day",
+      changes: [
+        { what: "Replaced gym workout with bodyweight routine", why: "Travel days need equipment-free movement", action: "10-minute bodyweight" },
+        { what: "Shortened walk to 10 minutes", why: "Portable and flexible around travel schedule", action: "10-minute walk" },
+        { what: "Kept stress reset (works anywhere)", why: "Breathing exercises are travel-friendly", action: "5-minute reset" },
+      ],
+    };
+  }
+
+  if (scenario === "struggling" || scenario === "recovery") {
+    basePlan[2] = {
+      ...basePlan[2],
+      title: "10-minute walk",
+      durationMin: 10,
+      adapted: true,
+      originalTitle: "30-minute workout",
+      originalDurationMin: 30,
+      adaptationReason: "Repeated misses — rebuilding momentum",
+    };
+    adaptation = {
+      id: "adapt-recovery",
+      date: today,
+      trigger: "recovery",
+      triggerLabel: "Repeated missed habits",
+      changes: [
+        { what: "Reduced workout from 30 min to 10-min walk", why: "You've missed 3+ habits this week — pushing harder won't help", action: "10-minute walk" },
+        { what: "Added 5-min mobility in the morning", why: "Lower-intensity movements rebuild momentum", action: "5-minute mobility" },
+        { what: "Moved workout to 6:30 PM", why: "Evening workouts are more consistent for you", action: "6:30 PM session" },
+      ],
+    };
+  }
+
+  return { plan: basePlan, adaptation };
+}
+
+export function buildDemoRecovery(scenario: DemoScenario): RecoveryState | null {
+  if (scenario !== "struggling" && scenario !== "recovery" && scenario !== "poor_sleep") return null;
+
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const thursday = new Date(today);
+  thursday.setDate(thursday.getDate() + 3);
+
+  if (scenario === "poor_sleep") {
+    return {
+      active: true,
+      trigger: "low_sleep",
+      triggerLabel: "Sleep 5h 12m + elevated stress",
+      startedAt: new Date().toISOString(),
+      plan: [
+        { day: "Today", date: today.toISOString().slice(0, 10), title: "10-minute walk + 5-min reset", durationMin: 15, completed: false },
+        { day: "Tomorrow", date: tomorrow.toISOString().slice(0, 10), title: "15-minute workout", durationMin: 15, completed: false },
+      ],
+      recoveryConsistency: 0.5,
+      daysActive: 1,
+    };
+  }
+
+  return {
+    active: true,
+    trigger: "repeated_misses",
+    triggerLabel: "Two disrupted days in a row",
+    startedAt: new Date().toISOString(),
+    plan: [
+      { day: "Today", date: today.toISOString().slice(0, 10), title: "10-minute walk", durationMin: 10, completed: false },
+      { day: "Tomorrow", date: tomorrow.toISOString().slice(0, 10), title: "15-minute workout", durationMin: 15, completed: false },
+      { day: thursday.toLocaleDateString("en-US", { weekday: "long" }), date: thursday.toISOString().slice(0, 10), title: "Return to normal plan", durationMin: 30, completed: false },
+    ],
+    recoveryConsistency: 0.6,
+    daysActive: 2,
+  };
+}
+
+export function buildDemoHealthPatterns(scenario: DemoScenario): HealthPattern[] {
+  const patterns: HealthPattern[] = [
+    {
+      id: "pat-best-days",
+      title: "Your best days are when you plan movement before lunch",
+      detail: "You complete 38% more habits on days when movement is scheduled before noon.",
+      dataConsidered: ["Habit completion by time-of-day", "Last 7 days of history"],
+      confidence: "moderate",
+      category: "pattern",
+    },
+    {
+      id: "pat-short-workouts",
+      title: "Shorter workouts work better for you",
+      detail: "You're 2.1× more likely to complete a habit when it's under 20 minutes.",
+      dataConsidered: ["Completion rate segmented by duration", "Last 30 days of habit logs"],
+      confidence: "moderate",
+      category: "pattern",
+    },
+    {
+      id: "pat-caffeine",
+      title: "Your sleep improves when you stop caffeine earlier",
+      detail: "On days you logged caffeine before 2 PM, you averaged 42 minutes more sleep.",
+      dataConsidered: ["Self-reported caffeine timing", "Wearable sleep duration", "14-day correlation"],
+      confidence: "low",
+      category: "pattern",
+    },
+  ];
+
+  if (scenario === "poor_sleep" || scenario === "struggling") {
+    patterns.push({
+      id: "pat-sleep-completion",
+      title: "Your completion drops after poor sleep",
+      detail: "On days after sleeping less than 7h, your habit completion drops by ~30%.",
+      dataConsidered: ["Sleep duration from wearable", "Next-day habit completion", "14-day correlation"],
+      confidence: "moderate",
+      category: "barrier",
+    });
+  }
+
+  return patterns;
+}
+
+export function buildDemoProactiveMessages(scenario: DemoScenario): ProactiveMessage[] {
+  const messages: ProactiveMessage[] = [];
+
+  if (scenario === "poor_sleep") {
+    messages.push({
+      id: "pm-poor-sleep",
+      title: "Let's make today gentler",
+      body: "Your sleep was 5h 12m last night. I've switched your movement goal to a 15-minute walk.",
+      reason: "Wearable sleep data < 6h detected",
+      action: "View today's plan",
+      priority: "high",
+      confidence: "high",
+      category: "recommended",
+      usefulness: 0.9,
+      novelty: 0.8,
+      notificationBurden: 0.2,
+      shouldSpeak: true,
+    });
+  }
+
+  if (scenario === "busy_day") {
+    messages.push({
+      id: "pm-busy",
+      title: "Your workout time is blocked today",
+      body: "Your usual 5:30 PM slot conflicts with a late meeting. I moved it to 6:30 PM.",
+      reason: "Calendar integration detected a conflict",
+      action: "View adapted plan",
+      priority: "medium",
+      confidence: "high",
+      category: "scheduled",
+      usefulness: 0.8,
+      novelty: 0.7,
+      notificationBurden: 0.3,
+      shouldSpeak: true,
+    });
+  }
+
+  if (scenario === "successful") {
+    messages.push({
+      id: "pm-progression",
+      title: "Time to add a small challenge?",
+      body: "You're at 85% completion this week. Want to add a 10-min morning stretch next week?",
+      reason: "80%+ completion threshold reached",
+      action: "Tell me more",
+      priority: "low",
+      confidence: "moderate",
+      category: "recommended",
+      usefulness: 0.5,
+      novelty: 0.6,
+      notificationBurden: 0.4,
+      shouldSpeak: false,  // low priority → don't surface proactively
+    });
+  }
+
+  if (scenario === "travel_day") {
+    messages.push({
+      id: "pm-travel",
+      title: "Travel-friendly plan ready",
+      body: "I've switched your workout to a 10-minute bodyweight routine you can do anywhere.",
+      reason: "Travel context detected from your input",
+      action: "View plan",
+      priority: "high",
+      confidence: "high",
+      category: "recommended",
+      usefulness: 0.85,
+      novelty: 0.9,
+      notificationBurden: 0.2,
+      shouldSpeak: true,
+    });
+  }
+
+  return messages;
+}
+
 export function buildDemoState(scenario: DemoScenario): AppState {
+  const { plan, adaptation } = buildDemoTodayPlan(scenario);
+  const planHierarchy = buildPlanHierarchy(scenario);
+  const planningInsights = buildPlanningInsights(scenario);
   return {
     view: "home",
     onboardingStep: 0,
@@ -567,6 +995,25 @@ export function buildDemoState(scenario: DemoScenario): AppState {
       { type: "demo_loaded", timestamp: new Date().toISOString(), properties: { scenario } },
     ],
     demoScenario: scenario,
+    // FEATURE 1 — Life-Aware Adaptive Plan
+    lifeContexts: buildDemoLifeContexts(scenario),
+    calendarEvents: buildDemoCalendar(scenario),
+    todayPlan: plan,
+    planAdaptations: adaptation ? [adaptation] : [],
+    pendingAdaptation: adaptation,
+    // FEATURE 2 — Recovery Mode
+    recovery: buildDemoRecovery(scenario),
+    // FEATURE 3 — Health Interpreter
+    recommendations: [],
+    healthPatterns: buildDemoHealthPatterns(scenario),
+    // FEATURE 5 — Coach Silence + Trust Layer
+    coachMode: scenario === "recovery" ? "recovery" : "active",
+    proactiveMessages: buildDemoProactiveMessages(scenario),
+    // FEATURE 6 — Long-Term Adaptive Planning
+    planHierarchy,
+    planHorizon: "today",
+    planningInsights,
+    cascadeAdaptations: [],
   };
 }
 
@@ -745,6 +1192,134 @@ function buildStarterNudges(profile: UserProfile): NudgeItem[] {
   return nudges;
 }
 
+// ------------------------------------------------------------
+// Honest day-one planning hierarchy generated from onboarding.
+// Unlike the demo hierarchy (which assumes a month of history),
+// this starts the user at the very beginning: Month 1 current,
+// Week 1 current, progress at zero, everything "on track".
+// ------------------------------------------------------------
+
+const GOAL_OBJECTIVE: Record<Goal, string> = {
+  fitness: "Build a sustainable movement and fitness routine",
+  weight: "Establish steady, sustainable weight-management habits",
+  sleep: "Build a consistent, restorative sleep routine",
+  stress: "Build daily habits that keep stress manageable",
+  nutrition: "Build steady, protein-forward eating habits",
+  routines: "Turn small daily actions into lasting routines",
+};
+
+function addDaysISO(base: Date, days: number): string {
+  const d = new Date(base);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+export function buildStarterPlanHierarchy(profile: UserProfile): PlanHierarchy {
+  const today = new Date();
+  const q = Math.floor(today.getMonth() / 3) + 1;
+  const quarterLabel = `Q${q} ${today.getFullYear()}`;
+
+  const outcomes: QuarterlyGoal["outcomes"] = [
+    { id: "qo-movement", label: "Movement consistency", baseline: 30, target: 70, current: 30, unit: "%", trend: "flat", confidence: "moderate", status: "on_track", rationale: "Your starting point, based on onboarding. This grows as you log habits." },
+    { id: "qo-sleep", label: "Sleep routine", baseline: 40, target: 80, current: 40, unit: "%", trend: "flat", confidence: "low", status: "on_track" },
+    { id: "qo-stress", label: "Stress management", baseline: 35, target: 65, current: 35, unit: "%", trend: "flat", confidence: "low", status: "on_track" },
+    { id: "qo-habits", label: "Sustainable habits", baseline: 20, target: 75, current: 20, unit: "%", trend: "flat", confidence: "moderate", status: "on_track" },
+  ];
+
+  const mkGoals = (mult: number): MonthlyMilestone["goals"] => [
+    { id: "sm-move", label: "Movement sessions", target: 8 + mult * 2, current: 0, projected: 8 + mult * 2, unit: "sessions", status: "on_track" },
+    { id: "sm-sleep", label: "Sleep targets", target: 16 + mult * 2, current: 0, projected: 16 + mult * 2, unit: "nights", status: "on_track" },
+    { id: "sm-stress", label: "Stress resets", target: 8 + mult * 2, current: 0, projected: 8 + mult * 2, unit: "sessions", status: "on_track" },
+  ];
+
+  const milestones: MonthlyMilestone[] = [
+    { id: "sm1", monthLabel: "Month 1 — Establish", monthNumber: 1, focus: "Build a consistent daily rhythm with small, easy wins", startDate: addDaysISO(today, 0), endDate: addDaysISO(today, 30), goals: mkGoals(0), status: "on_track", current: true },
+    { id: "sm2", monthLabel: "Month 2 — Strengthen", monthNumber: 2, focus: "Increase consistency and gradually add activity", startDate: addDaysISO(today, 31), endDate: addDaysISO(today, 60), goals: mkGoals(1), status: "on_track", current: false },
+    { id: "sm3", monthLabel: "Month 3 — Sustain", monthNumber: 3, focus: "Maintain habits with fewer reminders", startDate: addDaysISO(today, 61), endDate: addDaysISO(today, 90), goals: mkGoals(2), status: "on_track", current: false },
+  ];
+
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // Monday
+  const dayTitles: { day: string; title: string; category: WeeklyDayPlan["category"]; dur: number }[] = [
+    { day: "Monday", title: "15-min walk", category: "movement", dur: 15 },
+    { day: "Tuesday", title: "5-min mobility", category: "movement", dur: 5 },
+    { day: "Wednesday", title: "Recovery", category: "recovery", dur: 10 },
+    { day: "Thursday", title: "15-min walk", category: "movement", dur: 15 },
+    { day: "Friday", title: "Flexible", category: "flexible", dur: 15 },
+    { day: "Saturday", title: "Outdoor activity", category: "outdoor", dur: 30 },
+    { day: "Sunday", title: "Recovery", category: "recovery", dur: 10 },
+  ];
+  const days: WeeklyDayPlan[] = dayTitles.map((d, i) => ({
+    id: `swd-${i}`,
+    day: d.day,
+    date: addDaysISO(weekStart, i),
+    title: d.title,
+    category: d.category,
+    durationMin: d.dur,
+    completed: false,
+    skipped: false,
+    adapted: false,
+  }));
+
+  const currentWeek: WeeklyPlan = {
+    id: "starter-week",
+    weekLabel: `Week of ${weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+    weekNumber: 1,
+    objective: "Complete your first few sessions — small and consistent beats big and rare.",
+    startDate: weekStart.toISOString().slice(0, 10),
+    endDate: addDaysISO(weekStart, 6),
+    days,
+    status: "on_track",
+    completedSessions: 0,
+    targetSessions: 4,
+    adaptedSessions: 0,
+    recoverySessions: 0,
+    current: true,
+  };
+
+  const quarter: QuarterlyGoal = {
+    id: `starter-${quarterLabel.replace(/\s/g, "-").toLowerCase()}`,
+    quarterLabel,
+    primaryObjective: GOAL_OBJECTIVE[profile.primaryGoal] ?? GOAL_OBJECTIVE.routines,
+    outcomes,
+    milestones,
+    startDate: addDaysISO(today, 0),
+    endDate: addDaysISO(today, 90),
+    status: "on_track",
+  };
+
+  return { quarter, currentMonth: milestones[0], currentWeek };
+}
+
+function buildStarterPlanningInsights(profile: UserProfile): PlanningInsight[] {
+  return [
+    {
+      id: "spi-start-small",
+      title: "Week 1 is about showing up, not perfection",
+      body: "Your plan starts light on purpose. Completing 3-4 small sessions this week builds the momentum everything else depends on.",
+      category: "recommendation",
+      confidence: "high",
+      scope: "week",
+    },
+    {
+      id: "spi-quarter-direction",
+      title: `This quarter is about ${(GOAL_OBJECTIVE[profile.primaryGoal] ?? GOAL_OBJECTIVE.routines).toLowerCase()}`,
+      body: "Long-term goals set the direction; your daily plan adapts to real life. As you log habits, these numbers become personalized to you.",
+      category: "observation",
+      confidence: "moderate",
+      scope: "quarter",
+    },
+    {
+      id: "spi-month-establish",
+      title: "Month 1 focus: establish a rhythm",
+      body: "Anchor one habit to something you already do each day. Consistency now makes Months 2 and 3 far easier.",
+      category: "observation",
+      confidence: "moderate",
+      scope: "month",
+    },
+  ];
+}
+
 export function buildStarterState(profile: UserProfile): Partial<AppState> {
   const habits = buildStarterHabits(profile);
   const metrics = buildStarterMetrics(profile);
@@ -779,5 +1354,19 @@ export function buildStarterState(profile: UserProfile): Partial<AppState> {
     nudges: buildStarterNudges(profile),
     insights: [],
     weeklyReview: null,
+    // Long-term planning + life-aware context, seeded honestly for day one
+    calendarEvents: buildDemoCalendar("new"),
+    lifeContexts: [],
+    planHierarchy: buildStarterPlanHierarchy(profile),
+    planningInsights: buildStarterPlanningInsights(profile),
+    planHorizon: "today",
+    coachMode: "active",
+    recovery: null,
+    healthPatterns: [],
+    recommendations: [],
+    proactiveMessages: [],
+    cascadeAdaptations: [],
+    planAdaptations: [],
+    pendingAdaptation: null,
   };
 }
