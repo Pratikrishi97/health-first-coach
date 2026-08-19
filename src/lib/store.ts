@@ -7,13 +7,19 @@ import type {
   AppView,
   AppState,
   CoachMessage,
+  CoachMode,
   DemoScenario,
   Habit,
+  LifeContext,
+  LifeContextType,
+  PlanAdaptation,
+  PlanItem,
   TimelineEvent,
   UserProfile,
 } from "./types";
 import { buildDemoState } from "./demo-data";
 import { getCoachReply } from "./coach-engine";
+import { generateAdaptivePlan } from "./adaptation-engine";
 
 // ============================================================
 // Global app store — single source of truth for the prototype
@@ -44,12 +50,29 @@ interface StoreActions {
   loadDemo: (scenario: DemoScenario) => void;
   resetAll: () => void;
   clearData: () => void;
-  // new
+  // activity
   startActivity: (habitId: string, title: string, durationMinutes: number) => void;
   tickActivity: () => void;
   completeActivity: () => void;
   cancelActivity: () => void;
   addTimelineEvent: (event: TimelineEvent) => void;
+  // FEATURE 1 — Life-Aware Adaptive Plan
+  addLifeContext: (type: LifeContextType, label: string, note?: string) => void;
+  removeLifeContext: (id: string) => void;
+  acceptPlanAdaptation: () => void;
+  rejectPlanAdaptation: () => void;
+  togglePlanItem: (itemId: string) => void;
+  skipPlanItem: (itemId: string) => void;
+  modifyPlanItem: (itemId: string, patch: Partial<PlanItem>) => void;
+  regeneratePlan: () => void;
+  // FEATURE 2 — Recovery Mode
+  acceptRecoveryPlan: () => void;
+  skipRecoveryToday: () => void;
+  dismissRecovery: () => void;
+  // FEATURE 5 — Coach Silence
+  setCoachMode: (mode: CoachMode) => void;
+  dismissProactiveMessage: (id: string) => void;
+  snoozeProactiveMessage: (id: string) => void;
 }
 
 type Store = AppState & StoreActions;
@@ -74,6 +97,20 @@ const initialState: AppState = {
   activeActivity: null,
   analyticsEvents: [],
   demoScenario: "new",
+  // FEATURE 1 — Life-Aware Adaptive Plan
+  lifeContexts: [],
+  calendarEvents: [],
+  todayPlan: [],
+  planAdaptations: [],
+  pendingAdaptation: null,
+  // FEATURE 2 — Recovery Mode
+  recovery: null,
+  // FEATURE 3 — Health Interpreter
+  recommendations: [],
+  healthPatterns: [],
+  // FEATURE 5 — Coach Silence
+  coachMode: "active",
+  proactiveMessages: [],
 };
 
 export const useAppStore = create<Store>()(
@@ -297,6 +334,160 @@ export const useAppStore = create<Store>()(
 
       addTimelineEvent: (event) =>
         set((s) => ({ timeline: [event, ...s.timeline] })),
+
+      // FEATURE 1 — Life-Aware Adaptive Plan
+      addLifeContext: (type, label, note) => {
+        const ctx: LifeContext = {
+          id: `lc-${Date.now()}`,
+          type,
+          label,
+          note,
+          date: new Date().toISOString().slice(0, 10),
+          addedAt: new Date().toISOString(),
+        };
+        set((s) => ({ lifeContexts: [...s.lifeContexts, ctx] }));
+        get().track("life_context_added", { type, label });
+        // Auto-regenerate plan with new context
+        get().regeneratePlan();
+      },
+
+      removeLifeContext: (id) => {
+        set((s) => ({ lifeContexts: s.lifeContexts.filter((c) => c.id !== id) }));
+        get().regeneratePlan();
+      },
+
+      acceptPlanAdaptation: () => {
+        const pending = get().pendingAdaptation;
+        if (pending) {
+          set((s) => ({
+            pendingAdaptation: null,
+            planAdaptations: [...s.planAdaptations, { ...pending, accepted: true }],
+          }));
+          get().track("plan_adaptation_accepted", { trigger: pending.trigger });
+          get().addTimelineEvent({
+            id: `t-${Date.now()}`,
+            date: new Date().toISOString().slice(0, 10),
+            type: "plan_adapted",
+            title: `Plan adapted: ${pending.triggerLabel}`,
+            description: pending.changes.map((c) => c.what).join(". "),
+            icon: "plan",
+          });
+        }
+      },
+
+      rejectPlanAdaptation: () => {
+        const pending = get().pendingAdaptation;
+        if (pending) {
+          set((s) => ({
+            pendingAdaptation: null,
+            planAdaptations: [...s.planAdaptations, { ...pending, accepted: false }],
+          }));
+          get().track("plan_adaptation_rejected", { trigger: pending.trigger });
+        }
+      },
+
+      togglePlanItem: (itemId) => {
+        set((s) => ({
+          todayPlan: s.todayPlan.map((p) =>
+            p.id === itemId ? { ...p, completed: !p.completed, skipped: false } : p
+          ),
+        }));
+        const item = get().todayPlan.find((p) => p.id === itemId);
+        if (item) {
+          get().track(item.completed ? "habit_completed" : "habit_missed", { itemId });
+          if (item.completed) {
+            get().addTimelineEvent({
+              id: `t-${Date.now()}`,
+              date: new Date().toISOString().slice(0, 10),
+              type: "goal_completed",
+              title: `Completed ${item.title}`,
+              description: `${item.durationMin}-minute session finished.`,
+              icon: "check",
+            });
+          }
+        }
+      },
+
+      skipPlanItem: (itemId) => {
+        set((s) => ({
+          todayPlan: s.todayPlan.map((p) =>
+            p.id === itemId ? { ...p, skipped: true, completed: false } : p
+          ),
+        }));
+        get().track("habit_skipped", { itemId });
+      },
+
+      modifyPlanItem: (itemId, patch) => {
+        set((s) => ({
+          todayPlan: s.todayPlan.map((p) =>
+            p.id === itemId ? { ...p, ...patch, adapted: true } : p
+          ),
+        }));
+        get().track("plan_item_modified", { itemId });
+      },
+
+      regeneratePlan: () => {
+        // Regenerate plan using the adaptation engine based on current state
+        const result = generateAdaptivePlan(get());
+        set((s) => ({
+          todayPlan: result.plan,
+          pendingAdaptation: result.adaptation,
+        }));
+        if (result.adaptation) {
+          get().track("plan_adapted", { trigger: result.adaptation.trigger });
+        }
+      },
+
+      // FEATURE 2 — Recovery Mode
+      acceptRecoveryPlan: () => {
+        const recovery = get().recovery;
+        if (recovery) {
+          set({ recovery: { ...recovery, active: true } });
+          get().track("recovery_plan_accepted", { trigger: recovery.trigger });
+          // Set coach mode to recovery
+          get().setCoachMode("recovery");
+        }
+      },
+
+      skipRecoveryToday: () => {
+        const recovery = get().recovery;
+        if (recovery) {
+          const plan = [...recovery.plan];
+          if (plan[0]) plan[0] = { ...plan[0], completed: false };
+          set({ recovery: { ...recovery, plan } });
+          get().track("recovery_skipped_today", {});
+        }
+      },
+
+      dismissRecovery: () => {
+        set({ recovery: null });
+        get().track("recovery_dismissed", {});
+      },
+
+      // FEATURE 5 — Coach Silence + Trust Layer
+      setCoachMode: (mode) => {
+        set({ coachMode: mode });
+        get().track(mode === "off" ? "coach_silenced" : "coach_reenabled", { mode });
+      },
+
+      dismissProactiveMessage: (id) => {
+        set((s) => ({
+          proactiveMessages: s.proactiveMessages.map((m) =>
+            m.id === id ? { ...m, dismissed: true } : m
+          ),
+        }));
+        get().track("nudge_dismissed", { id });
+      },
+
+      snoozeProactiveMessage: (id) => {
+        const snoozedUntil = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+        set((s) => ({
+          proactiveMessages: s.proactiveMessages.map((m) =>
+            m.id === id ? { ...m, snoozedUntil } : m
+          ),
+        }));
+        get().track("nudge_snoozed", { id });
+      },
     }),
     {
       name: "health-first-coach",
@@ -321,6 +512,16 @@ export const useAppStore = create<Store>()(
         activeActivity: s.activeActivity,
         analyticsEvents: s.analyticsEvents.slice(-50),
         demoScenario: s.demoScenario,
+        lifeContexts: s.lifeContexts,
+        calendarEvents: s.calendarEvents,
+        todayPlan: s.todayPlan,
+        planAdaptations: s.planAdaptations,
+        pendingAdaptation: s.pendingAdaptation,
+        recovery: s.recovery,
+        recommendations: s.recommendations,
+        healthPatterns: s.healthPatterns,
+        coachMode: s.coachMode,
+        proactiveMessages: s.proactiveMessages,
       }),
     }
   )

@@ -171,6 +171,20 @@ export interface AppState {
   analyticsEvents: AnalyticsEvent[];
   // demo
   demoScenario: DemoScenario;
+  // FEATURE 1 — Life-Aware Adaptive Plan
+  lifeContexts: LifeContext[];
+  calendarEvents: CalendarEvent[];
+  todayPlan: PlanItem[];
+  planAdaptations: PlanAdaptation[];
+  pendingAdaptation: PlanAdaptation | null;
+  // FEATURE 2 — Recovery Mode
+  recovery: RecoveryState | null;
+  // FEATURE 3 — Health Interpreter
+  recommendations: Recommendation[];
+  healthPatterns: HealthPattern[];
+  // FEATURE 5 — Coach Silence + Trust Layer
+  coachMode: CoachMode;
+  proactiveMessages: ProactiveMessage[];
 }
 
 export interface TimelineEvent {
@@ -218,7 +232,10 @@ export type AppView =
   | "nudges"
   | "timeline"
   | "weekly_review"
-  | "plan_lab";
+  | "plan_lab"
+  | "today_plan"
+  | "recovery"
+  | "life_context";
 
 export interface AnalyticsEvent {
   type: string;
@@ -226,7 +243,15 @@ export interface AnalyticsEvent {
   properties?: Record<string, string | number | boolean>;
 }
 
-export type DemoScenario = "new" | "successful" | "struggling" | "poor_sleep" | "safety";
+export type DemoScenario =
+  | "new"
+  | "successful"
+  | "struggling"
+  | "poor_sleep"
+  | "safety"
+  | "busy_day"
+  | "travel_day"
+  | "recovery";
 
 // ============================================================
 // Plan output from onboarding
@@ -242,4 +267,170 @@ export interface PersonalizedPlan {
   durationDays: number;
   focuses: PlanFocus[];
   firstWin: string;
+}
+
+// ============================================================
+// FEATURE 1 — Life-Aware Adaptive Plan
+// ============================================================
+
+export type LifeContextType =
+  | "busy"
+  | "travel"
+  | "wfh"
+  | "office"
+  | "low_energy"
+  | "high_stress"
+  | "more_time"
+  | "social"
+  | "poor_sleep";
+
+export interface LifeContext {
+  id: string;
+  type: LifeContextType;
+  label: string;
+  note?: string;          // natural-language input
+  date: string;           // ISO date the context applies to
+  addedAt: string;
+}
+
+export interface CalendarEvent {
+  id: string;
+  time: string;           // "08:30"
+  endTime?: string;       // "10:00"
+  title: string;
+  category: "meeting" | "lunch" | "free" | "personal" | "travel" | "dinner" | "focus";
+  durationMin: number;
+  simulated?: boolean;    // mark mock calendar data
+}
+
+export interface PlanItem {
+  id: string;
+  time: string;           // "07:00"
+  period: "morning" | "lunch" | "afternoon" | "evening";
+  title: string;
+  description?: string;
+  category: "movement" | "sleep" | "nutrition" | "stress" | "routines";
+  durationMin: number;
+  completed: boolean;
+  skipped: boolean;
+  adapted: boolean;             // was this changed by the engine?
+  originalTitle?: string;       // what it was before adaptation
+  originalDurationMin?: number;
+  adaptationReason?: string;
+}
+
+export interface PlanAdaptation {
+  id: string;
+  date: string;
+  trigger: AdaptationTrigger;
+  triggerLabel: string;        // human-readable
+  changes: PlanAdaptationChange[];
+  accepted?: boolean;          // user accepted/rejected
+}
+
+export type AdaptationTrigger =
+  | "low_sleep"
+  | "busy_day"
+  | "travel"
+  | "recovery"
+  | "high_stress"
+  | "high_completion"
+  | "low_completion"
+  | "calendar_block"
+  | "user_context";
+
+export interface PlanAdaptationChange {
+  what: string;          // "Reduced workout from 30 min to 10 min walk"
+  why: string;           // "Your sleep was below baseline"
+  action: string;        // "10-minute walk"
+}
+
+// ============================================================
+// FEATURE 2 — Recovery Mode / No-Guilt Engine
+// ============================================================
+
+export interface RecoveryState {
+  active: boolean;
+  trigger: "repeated_misses" | "low_sleep" | "high_stress" | "schedule_disruption" | "user_request";
+  triggerLabel: string;
+  startedAt: string;
+  plan: RecoveryPlanItem[];
+  recoveryConsistency: number;     // 0-1, alternative to streak
+  daysActive: number;
+}
+
+export interface RecoveryPlanItem {
+  day: string;             // "Today" | "Tomorrow" | "Thursday"
+  date: string;
+  title: string;
+  durationMin: number;
+  completed: boolean;
+}
+
+// ============================================================
+// FEATURE 3 — "Why?" Health Interpreter
+// ============================================================
+
+export interface Recommendation {
+  id: string;
+  title: string;
+  body: string;
+  action: RecommendationAction;
+  why: string[];                    // bullet reasons
+  dataUsed: string[];               // what data was considered
+  confidence: "low" | "moderate" | "high";
+  priority: "low" | "medium" | "high";
+  alternative?: string;             // alternative action
+  userControl?: string;             // e.g. "Use normal plan instead"
+  category: "movement" | "sleep" | "nutrition" | "stress" | "routines";
+}
+
+export type RecommendationAction =
+  | "start_walk"
+  | "adjust_plan"
+  | "schedule_habit"
+  | "tell_me_more"
+  | "rest_today"
+  | "use_lighter_plan"
+  | "use_normal_plan"
+  | "find_support";
+
+export interface HealthPattern {
+  id: string;
+  title: string;
+  detail: string;
+  dataConsidered: string[];
+  confidence: "low" | "moderate" | "high";
+  category: "pattern" | "success" | "barrier";
+}
+
+// ============================================================
+// FEATURE 5 — Coach Silence + Trust Layer
+// ============================================================
+
+export type CoachMode = "active" | "quiet" | "focus" | "recovery" | "off";
+
+export interface CoachModeInfo {
+  mode: CoachMode;
+  label: string;
+  description: string;
+  proactiveAllowed: boolean;
+}
+
+export interface ProactiveMessage {
+  id: string;
+  title: string;
+  body: string;
+  reason: string;
+  action: string;
+  priority: "low" | "medium" | "high";
+  confidence: "low" | "moderate" | "high";
+  category: "recommended" | "scheduled" | "quiet";
+  dismissed?: boolean;
+  snoozedUntil?: string;
+  // "should I speak?" decision inputs
+  usefulness: number;        // 0-1
+  novelty: number;            // 0-1 (low if repeated)
+  notificationBurden: number; // 0-1 (high if many recent)
+  shouldSpeak: boolean;       // computed
 }
